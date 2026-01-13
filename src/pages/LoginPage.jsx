@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FiUser, FiLock } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/auth.service";
 
 const LoginPage = () => {
@@ -25,37 +26,80 @@ const LoginPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-      <h1 className="text-2xl font-semibold text-center">Login</h1>
+    <div className="bg-transparent flex flex-col w-full max-w-4xl">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-4xl font-semibold mt-2 mb-5 text-gray-800">
+          LOGIN
+        </h2>
+      </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      <form onSubmit={handleSubmit}>
+        {/* Email */}
+        <div className="relative mb-4">
+          <FiUser className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-600" />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="w-full pl-12 pr-4 py-3 rounded-full outline-none transition bg-gray-100 text-gray-800 focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
 
-      <input
-        type="email"
-        placeholder="Email"
-        className="w-full border p-2 rounded"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
+        {/* Password */}
+        <div className="relative mb-4">
+          <FiLock className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-600" />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="w-full pl-12 pr-4 py-3 rounded-full outline-none transition bg-gray-100 text-gray-800 focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
 
-      <input
-        type="password"
-        placeholder="Password"
-        className="w-full border p-2 rounded"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
+        {/* Error */}
+        {error && (
+          <p className="text-red-500 text-sm mb-3 text-center">{error}</p>
+        )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-black text-white p-2 rounded"
-      >
-        {loading ? "Logging in..." : "Login"}
-      </button>
-    </form>
+        {/* Sign In Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 font-medium rounded-full transition bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-70"
+        >
+          {loading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
+
+      {/* Divider */}
+      <div className="flex items-center my-4">
+        <hr className="flex-grow border-gray-300" />
+        <span className="px-2 text-sm text-gray-500">OR</span>
+        <hr className="flex-grow border-gray-300" />
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-between items-center text-sm mt-3">
+        <span className="text-gray-600">
+          Don't have an account?
+          <Link
+            to="/signup"
+            className="font-medium ml-2 cursor-pointer hover:underline text-blue-600"
+          >
+            Sign Up
+          </Link>
+        </span>
+
+        <Link to="/forgot-password" className="text-gray-600 hover:underline">
+          Forgot password?
+        </Link>
+      </div>
+    </div>
   );
 };
 
