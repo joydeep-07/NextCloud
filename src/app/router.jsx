@@ -1,7 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import AppLayout from "../components/layout/AppLayout";
 import AuthLayout from "../components/layout/AuthLayout";
+import AppLayout from "../components/layout/AppLayout";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
@@ -10,10 +11,13 @@ import FolderPage from "../pages/FolderPage";
 import InviteAcceptPage from "../pages/InviteAcceptPage";
 
 const router = createBrowserRouter([
+  // Redirect root to login
   {
     path: "/",
     element: <Navigate to="/login" replace />,
   },
+
+  // Auth routes
   {
     element: <AuthLayout />,
     children: [
@@ -27,19 +31,28 @@ const router = createBrowserRouter([
       },
     ],
   },
+
+  // Protected app routes
   {
-    element: <AppLayout />,
+    element: <ProtectedRoute />,
     children: [
       {
-        path: "/dashboard",
-        element: <DashboardPage />,
-      },
-      {
-        path: "/folder/:id",
-        element: <FolderPage />,
+        element: <AppLayout />,
+        children: [
+          {
+            path: "/dashboard",
+            element: <DashboardPage />,
+          },
+          {
+            path: "/folder/:id",
+            element: <FolderPage />,
+          },
+        ],
       },
     ],
   },
+
+  // Invite route (can be accessed without login)
   {
     path: "/invite/:token",
     element: <InviteAcceptPage />,
