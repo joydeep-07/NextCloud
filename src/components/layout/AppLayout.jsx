@@ -22,26 +22,6 @@ const AppLayout = () => {
             Dashboard
           </button>
 
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full text-left px-2 py-1 rounded hover:bg-gray-800"
-          >
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full text-left px-2 py-1 rounded hover:bg-gray-800"
-          >
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full text-left px-2 py-1 rounded hover:bg-gray-800"
-          >
-            Dashboard
-          </button>
         </nav>
 
         <LogoutButton />
