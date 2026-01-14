@@ -11,9 +11,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="w-full border-2 border-red-500 px-6 py-3 flex items-center justify-end">
+    <nav className="w-full px-6 py-3 flex items-center justify-end">
       <span className="text-sm font-medium">
-        {profile?.first_name} {profile?.last_name}
+      Welcome,  {profile?.first_name}
       </span>
       {loading ? (
         <span className="text-sm text-gray-500">Loading...</span>
