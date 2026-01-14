@@ -1,171 +1,182 @@
 import React, { useState } from "react";
 import { useProfile } from "../../utils/useProfile";
-import {
-  FiUser,
-  FiChevronDown,
-  FiLogOut,
-  FiSettings,
-  FiBell,
-  FiMail,
-} from "react-icons/fi";
+import { FiChevronDown, FiBell, FiLayout, FiLogOut } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { logout } from "../../services/auth.service";
 
 const UserDropdown = () => {
   const { profile, loading } = useProfile();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Implement logout logic here
-    console.log("Logging out...");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center space-x-3 px-4 py-2">
-        <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
-        <div className="hidden md:block">
-          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1"></div>
-          <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+      <div className="flex items-center gap-3 px-3 py-2">
+        <div className="w-9 h-9 rounded-full bg-neutral-200/70 animate-pulse" />
+        <div className="hidden md:block space-y-1.5">
+          <div className="h-3.5 w-28 bg-neutral-200/70 rounded animate-pulse" />
+          <div className="h-2.5 w-20 bg-neutral-200/60 rounded animate-pulse" />
         </div>
       </div>
     );
   }
 
-  if (!profile) {
-    return <div className="px-4 py-2 text-gray-500 text-sm">Not signed in</div>;
-  }
+  if (!profile) return null;
 
   return (
     <div className="relative">
-      {/* User Avatar & Name */}
+      {/* Trigger Button */}
       <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 group"
+        className={`
+          group flex items-center gap-3 
+          px-2.5 py-2 rounded-full 
+          transition-all duration-300
+          hover:bg-white/80 active:bg-white/60
+        `}
       >
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
-            {profile.first_name?.[0]?.toUpperCase() ||
-              profile.email?.[0]?.toUpperCase() ||
-              "U"}
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
+            <User size={17} className="text-white" strokeWidth={2.3} />
           </div>
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-        </div>
-
-        <div className="hidden md:block text-left">
-          <p className="font-medium text-gray-800 group-hover:text-gray-900">
-            {profile.first_name || "User"} {profile.last_name || ""}
-          </p>
-          <p className="text-xs text-gray-500 truncate max-w-[150px]">
-            {profile.email || "user@example.com"}
-          </p>
+          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-[2.5px] border-white shadow-sm" />
         </div>
 
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{
+            duration: 0.4,
+            type: "spring",
+            stiffness: 260,
+            damping: 22,
+          }}
           className="hidden md:block"
         >
-          <FiChevronDown className="w-4 h-4 text-gray-500" />
+          <FiChevronDown className="w-4 h-4 text-neutral-400 group-hover:text-neutral-700 transition-colors" />
         </motion.div>
       </motion.button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50"
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{
+              duration: 0.22,
+              type: "spring",
+              damping: 24,
+              stiffness: 320,
+            }}
+            className={`
+              absolute right-0 mt-2 w-80 
+              bg-white/96 backdrop-blur-xl 
+              rounded-xl border border-neutral-200/60
+              shadow-xl shadow-black/8 
+              overflow-hidden z-50
+            `}
           >
-            {/* User Info Section */}
-            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                  {profile.first_name?.[0]?.toUpperCase() ||
-                    profile.email?.[0]?.toUpperCase() ||
-                    "U"}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">
-                    {profile.first_name || "User"} {profile.last_name || ""}
-                  </h3>
-                  <div className="flex items-center mt-1 text-sm text-gray-500">
-                    <FiMail className="w-3 h-3 mr-1" />
-                    <span className="truncate max-w-[180px]">
-                      {profile.email || "user@example.com"}
-                    </span>
+            {/* User Info Header */}
+            <div className="px-5 pt-5 pb-4 border-b border-neutral-100/80">
+              <div className="flex items-center gap-3.5">
+                <div className="relative flex-shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
+                    <User size={19} className="text-white" strokeWidth={2.2} />
                   </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-neutral-900 tracking-tight truncate">
+                    {profile.first_name} {profile.last_name}
+                  </h3>
+                  <p className="text-sm text-neutral-500 font-light mt-0.5 truncate">
+                    {profile.email}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Menu Items */}
-            <div className="p-2">
-              <motion.a
-                whileHover={{ x: 5 }}
-                href="/profile"
-                className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
+            <div className="py-2 px-2">
+              {/* Notifications */}
+              <Link
+                to="/notifications"
+                className={`
+                  group flex items-center gap-3.5 
+                  px-3.5 py-2.5 rounded-lg 
+                  text-neutral-700 hover:text-neutral-900
+                  hover:bg-neutral-50/80 active:bg-neutral-100/70
+                  transition-colors duration-200
+                `}
               >
-                <FiUser className="w-4 h-4" />
-                <span className="font-medium">My Profile</span>
-              </motion.a>
-
-              <motion.a
-                whileHover={{ x: 5 }}
-                href="/notifications"
-                className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                <FiBell className="w-4 h-4" />
-                <span className="font-medium">Notifications</span>
-                <span className="ml-auto px-2 py-1 text-xs bg-red-500 text-white rounded-full">
-                  3
+                <div className="w-8 h-8 rounded-md bg-neutral-100/70 flex items-center justify-center text-neutral-500 group-hover:bg-neutral-200/60 group-hover:text-neutral-700 transition-colors">
+                  <FiBell size={17} />
+                </div>
+                <span className="font-medium text-sm tracking-tight">
+                  Notifications
                 </span>
-              </motion.a>
+              </Link>
 
-              <motion.a
-                whileHover={{ x: 5 }}
-                href="/settings"
-                className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors"
+              {/* Dashboard */}
+              <Link
+                to="/dashboard"
+                className={`
+                  group flex items-center gap-3.5 
+                  px-3.5 py-2.5 rounded-lg 
+                  text-neutral-700 hover:text-neutral-900
+                  hover:bg-neutral-50/80 active:bg-neutral-100/70
+                  transition-colors duration-200
+                `}
               >
-                <FiSettings className="w-4 h-4" />
-                <span className="font-medium">Settings</span>
-              </motion.a>
+                <div className="w-8 h-8 rounded-md bg-neutral-100/70 flex items-center justify-center text-neutral-500 group-hover:bg-neutral-200/60 group-hover:text-neutral-700 transition-colors">
+                  <FiLayout size={17} />
+                </div>
+                <span className="font-medium text-sm tracking-tight">
+                  Dashboard
+                </span>
+              </Link>
 
               {/* Divider */}
-              <div className="h-px bg-gray-100 my-2"></div>
-
-              {/* Logout Button */}
-              <motion.button
-                whileHover={{ x: 5 }}
-                onClick={handleLogout}
-                className="flex items-center space-x-3 w-full px-3 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors"
-              >
-                <FiLogOut className="w-4 h-4" />
-                <span className="font-medium">Logout</span>
-              </motion.button>
-            </div>
-
-            {/* Footer */}
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>Version 1.0.0</span>
-                <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full text-xs">
-                  Premium
-                </span>
+              <div className="my-3 px-4">
+                <div className="h-px bg-neutral-100" />
               </div>
+
+              {/* Logout - Manual & Full width */}
+              <button
+                onClick={handleLogout}
+                className={`
+                  group flex items-center gap-3.5 w-full
+                  px-3.5 py-2.5 rounded-lg 
+                  text-red-600 hover:text-red-700
+                  hover:bg-red-50/70 active:bg-red-100/70
+                  transition-colors duration-200
+                `}
+              >
+                <div className="w-8 h-8 rounded-md bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-100 group-hover:text-red-600 transition-colors">
+                  <FiLogOut size={17} />
+                </div>
+                <span className="font-medium text-sm tracking-tight">
+                  Log out
+                </span>
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Click outside to close */}
-      {isOpen && (
-        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-      )}
     </div>
   );
 };
