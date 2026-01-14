@@ -1,4 +1,3 @@
-import LogoutButton from "../components/LogoutButton";
 import { useAuth } from "../context/AuthContext";
 
 const DashboardPage = () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { useProfile } from "../utils/useProfile";
+import { useProfile } from "../../utils/useProfile";
 import {
   FolderPlus,
   Bell,

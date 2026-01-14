@@ -1,8 +1,8 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { logout } from "../../services/auth.service";
 import { useAuth } from "../../context/AuthContext";
-import LogoutButton from "../LogoutButton";
-import Navbar from "../Navbar";
+import LogoutButton from "../ui/LogoutButton";
+import Navbar from "../ui/Navbar";
 
 const AppLayout = () => {
   const navigate = useNavigate();
