@@ -10,13 +10,10 @@ import {
   Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import CreateFolderButton from "./CreateFolderButton";
 
 const Navbar = () => {
   const { profile, loading } = useProfile();
-
-  const handleCreateFolder = () =>{
-    console.log("Button clicked")
-  }
 
   return (
     <nav className="sticky top-0 z-50 w-full px-6 py-4 bg-white border-b border-gray-100 shadow-sm backdrop-blur-sm bg-white/95">
@@ -24,11 +21,8 @@ const Navbar = () => {
         {/* Left Section */}
         <div className="flex items-center space-x-6">
           {/* Quick Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button onClick={handleCreateFolder} className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-gray-50">
-              <LayoutDashboard className="w-4 h-4" />
-              <span className="text-sm font-medium"> Create New Folder</span>
-            </button>
+          <div className="hidden md:flex border rounded border-gray-800/20 items-center space-x-4">
+            <CreateFolderButton/>
           
           </div>
         </div>
