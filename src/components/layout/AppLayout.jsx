@@ -1,15 +1,11 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { logout } from "../../services/auth.service";
 import { useAuth } from "../../context/AuthContext";
+import LogoutButton from "../LogoutButton";
 
 const AppLayout = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
 
   return (
     <div className="min-h-screen flex bg-gray-100">
@@ -47,12 +43,7 @@ const AppLayout = () => {
           </button>
         </nav>
 
-        <button
-          onClick={handleLogout}
-          className="mt-auto bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded"
-        >
-          Logout
-        </button>
+        <LogoutButton/>
       </aside>
 
       {/* Main Content */}

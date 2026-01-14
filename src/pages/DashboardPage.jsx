@@ -9,7 +9,7 @@ const DashboardPage = () => {
   return (
     <h1 className="text-2xl">
       Welcome {profile?.first_name ?? "User"} {profile?.last_name}👋
-      <LogoutButton/>
+     
     </h1>
   );
 };
