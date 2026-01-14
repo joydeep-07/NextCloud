@@ -7,10 +7,11 @@ const DashboardPage = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <h1 className="text-2xl">
-      Welcome {profile?.first_name ?? "User"} {profile?.last_name}👋
-     
-    </h1>
+  <>
+  <div className="h-full w-full ">
+    This is Dashboard page
+  </div>
+  </>
   );
 };
 
