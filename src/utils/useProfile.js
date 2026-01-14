@@ -5,22 +5,36 @@ import { useAuth } from "../context/AuthContext";
 export const useProfile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
 
     const fetchProfile = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("first_name, last_name")
         .eq("id", user.id)
         .single();
 
-      setProfile(data);
+      if (!error) {
+        setProfile({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: user.email,
+        });
+      }
+
+      setLoading(false);
     };
 
     fetchProfile();
   }, [user]);
 
-  return profile;
+  // ✅ ALWAYS return an object
+  return { profile, loading };
 };
