@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Route } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import AppLayout from "../components/layout/AppLayout";
@@ -9,6 +9,7 @@ import SignupPage from "../pages/SignupPage";
 import DashboardPage from "../pages/DashboardPage";
 import FolderPage from "../pages/FolderPage";
 import InviteAcceptPage from "../pages/InviteAcceptPage";
+import TestSupabase from "../pages/TestSupabase";
 
 const router = createBrowserRouter([
   // Redirect root to login
@@ -57,6 +58,13 @@ const router = createBrowserRouter([
     path: "/invite/:token",
     element: <InviteAcceptPage />,
   },
+
+  {
+    path: "/test",
+    element: <TestSupabase />,
+  },
+
+  // <Route path="/test" element={<TestSupabase />} />,
 ]);
 
 export default router;

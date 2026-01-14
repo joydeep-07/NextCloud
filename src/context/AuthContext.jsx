@@ -5,32 +5,73 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data?.session?.user ?? null);
-      setLoading(false);
-    });
+  const fetchProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", userId)
+        .single();
 
-    // Listen for auth changes
-    const { data: listener } = supabase.auth.onAuthStateChange(
+      if (!error) {
+        setProfile(data);
+      } else {
+        console.warn("Profile not found yet");
+        setProfile(null);
+      }
+    } catch (err) {
+      console.error("Profile fetch failed:", err.message);
+      setProfile(null);
+    }
+  };
+
+  useEffect(() => {
+    const initSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      const sessionUser = data?.session?.user ?? null;
+
+      setUser(sessionUser);
+
+      if (sessionUser) {
+        fetchProfile(sessionUser.id); // 🔥 NOT awaited
+      }
+
+      setLoading(false); // ✅ ALWAYS runs
+    };
+
+    initSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null);
+        const sessionUser = session?.user ?? null;
+        setUser(sessionUser);
+
+        if (sessionUser) {
+          fetchProfile(sessionUser.id);
+        } else {
+          setProfile(null);
+        }
       }
     );
 
-    return () => listener.subscription.unsubscribe();
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
-  const value = {
-    user,
-    loading,
-    isAuthenticated: !!user,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        loading,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);
