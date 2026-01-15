@@ -1,53 +1,102 @@
 import React from "react";
-import { useProfile } from "../../utils/useProfile";
-import {
-  FolderPlus,
-  Bell,
-  Search,
-  ChevronDown,
-  LayoutDashboard,
-  Database,
-  Settings,
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import CreateFolderButton from "./CreateFolderButton";
-import UserDropdown from "./UserDropdown";
+import { Search, Grid, List, Cloud } from "lucide-react";
 import UserDetail from "./UserDetail";
 
-const Navbar = () => {
-  const { profile, loading } = useProfile();
-
+const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
   return (
-    <nav className="sticky top-0 z-50 w-full px-6 py-3 backdrop-blur-sm ">
-      <div className=" mx-auto flex items-center justify-between">
-        {/* Left Section */}
-        <div className="flex items-center space-x-6">
-          {/* Quick Actions */}
-          <h1 className="text-lg font-medium text-neutral-700/80 ">NEXT CLOUD</h1>
-         
+    <nav className="w-full mb-8">
+      {/* Main Navigation Bar */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 ">
+        {/* Logo Section */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+            <Cloud className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                NEXTCLOUD
+              </h1>
+              <span className="px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full">
+                Beta
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              Your organized digital workspace
+            </p>
+          </div>
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center space-x-6">
-          {/* Search Bar */}
-          <div className="relative hidden lg:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        {/* Search and Controls Section */}
+        <div className="flex-1 max-w-2xl w-full">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search files, folders..."
-              className="pl-10 pr-4 py-2.5 w-2xl border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-transparent bg-gray-50 text-sm transition-all duration-200"
+              placeholder="Search folders, files, or documents..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* View Toggle and User Section */}
+        <div className="flex items-center gap-4">
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-50 p-1 rounded-xl border border-gray-200">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                viewMode === "grid"
+                  ? "bg-white shadow-sm text-blue-600 border border-blue-100"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              }`}
+            >
+              <Grid className="w-4 h-4" />
+              <span className="text-sm font-medium">Grid</span>
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                viewMode === "list"
+                  ? "bg-white shadow-sm text-blue-600 border border-blue-100"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              }`}
+            >
+              <List className="w-4 h-4" />
+              <span className="text-sm font-medium">List</span>
+            </button>
           </div>
 
-          {/* Quick Search Button for Mobile */}
-          <button className="lg:hidden p-2  text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-            <Search className="w-5 h-5" />
-          </button>
+          {/* Divider */}
+          <div className="h-8 w-px bg-gray-200 hidden md:block" />
 
-       
           {/* User Profile */}
-        {/* <UserDropdown/> */}
-        <UserDetail/>
+          <UserDetail />
+        </div>
+      </div>
+
+      {/* Stats Bar */}
+      <div className="flex items-center gap-6 mt-6 px-2">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="font-medium">124</span>
+          <span className="text-gray-500">Active folders</span>
+        </div>
+        <div className="h-4 w-px bg-gray-200"></div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <span className="font-medium">89%</span>
+          <span className="text-gray-500">Storage used</span>
         </div>
       </div>
     </nav>
@@ -55,5 +104,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-

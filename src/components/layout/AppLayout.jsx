@@ -16,11 +16,11 @@ const AppLayout = () => {
       <main className="flex-1">
         {/* Navbar positioned at top of main content */}
         <div className="sticky top-0 z-10">
-          <Navbar />
+          {/* <Navbar /> */}
         </div>
 
         {/* Content area */}
-        <div className="p-4">
+        <div className="">
           <Outlet />
         </div>
       </main>
