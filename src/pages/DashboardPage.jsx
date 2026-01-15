@@ -16,7 +16,7 @@ const DashboardPage = () => {
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [storageUsed, setStorageUsed] = useState("10737418249");
+  const [storageUsed, setStorageUsed] = useState(0);
   const [storageLoading, setStorageLoading] = useState(true);
 
   const fetchFolders = async () => {
