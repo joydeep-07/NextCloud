@@ -1,9 +1,28 @@
 @import "tailwindcss";
 
 body{
-  background-color: rgb(236, 236, 236);
+  background-color: var(--bg-main)
 }
 
 button{
   cursor: pointer;
+}
+
+:root {
+  --bg-main: #ffffff;
+  --bg-secondary: #f7f7f7;
+  --bg-gradient: linear-gradient(
+    135deg,
+    #ecfdf5,
+    #d1fae5,
+    #a7f3d0
+  );
+
+  --text-main: #191919; 
+  --text-secondary: #212121;
+
+  --accent-primary: rgb(26, 124, 26);
+  --accent-secondary: #66bb6a;
+
+  --border-light: #e0e0e0;
 }

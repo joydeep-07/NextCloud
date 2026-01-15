@@ -1,23 +1,30 @@
 import React from "react";
-import { Search, Grid, List, Cloud } from "lucide-react";
+import { Search, Grid, List } from "lucide-react";
 import UserDetail from "./UserDetail";
 
 const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
   return (
-    <nav className="w-full mb-8">
+    <nav
+      className="w-full mb-8 transition-all"
+     
+    >
       {/* Main Navigation Bar */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 ">
         {/* Logo Section */}
         <div className="flex items-center gap-3">
-         
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              <h1
+                className="heading-font text-3xl font-bold tracking-tight"
+                style={{ color: "var(--accent-primary)" }}
+              >
                 NEXTCLOUD
               </h1>
-             
             </div>
-            <p className="text-sm text-gray-500 mt-1">
+            <p
+              className="text-sm opacity-70"
+              style={{ color: "var(--text-secondary)" }}
+            >
               Your organized digital workspace
             </p>
           </div>
@@ -25,19 +32,29 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
 
         {/* Search and Controls Section */}
         <div className="flex-1 max-w-2xl w-full">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="relative group">
+            <Search
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors"
+              style={{ color: "var(--text-secondary)" }}
+            />
             <input
               type="text"
               placeholder="Search folders, files, or documents..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400"
+              className="w-full pl-12 pr-12 py-3 rounded-full focus:outline-none focus:ring-1 transition-all duration-200"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                color: "var(--text-main)",
+                border: "1px solid var(--border-light)",
+                "--tw-ring-color": "var(--accent-primary)",
+              }}
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-60 hover:opacity-100"
+                style={{ color: "var(--text-main)" }}
               >
                 ✕
               </button>
@@ -48,25 +65,56 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
         {/* View Toggle and User Section */}
         <div className="flex items-center gap-4">
           {/* View Toggle */}
-          <div className="flex items-center bg-gray-50 p-1 rounded-xl border border-gray-200">
+          <div
+            className="flex items-center p-1 rounded-xl border"
+            style={{
+              backgroundColor: "var(--bg-secondary)",
+              borderColor: "var(--border-light)",
+            }}
+          >
             <button
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                 viewMode === "grid"
-                  ? "bg-white shadow-sm text-blue-600 border border-blue-100"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "shadow-md"
+                  : "opacity-60 hover:opacity-100"
               }`}
+              style={{
+                backgroundColor:
+                  viewMode === "grid" ? "var(--bg-main)" : "transparent",
+                color:
+                  viewMode === "grid"
+                    ? "var(--accent-primary)"
+                    : "var(--text-main)",
+                border:
+                  viewMode === "grid"
+                    ? "1px solid var(--border-light)"
+                    : "1px solid transparent",
+              }}
             >
               <Grid className="w-4 h-4" />
               <span className="text-sm font-medium">Grid</span>
             </button>
+
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                 viewMode === "list"
-                  ? "bg-white shadow-sm text-blue-600 border border-blue-100"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "shadow-md"
+                  : "opacity-60 hover:opacity-100"
               }`}
+              style={{
+                backgroundColor:
+                  viewMode === "list" ? "var(--bg-main)" : "transparent",
+                color:
+                  viewMode === "list"
+                    ? "var(--accent-primary)"
+                    : "var(--text-main)",
+                border:
+                  viewMode === "list"
+                    ? "1px solid var(--border-light)"
+                    : "1px solid transparent",
+              }}
             >
               <List className="w-4 h-4" />
               <span className="text-sm font-medium">List</span>
@@ -74,27 +122,17 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
           </div>
 
           {/* Divider */}
-          <div className="h-8 w-px bg-gray-200 hidden md:block" />
+          <div
+            className="h-8 w-px hidden md:block"
+            style={{ backgroundColor: "var(--border-light)" }}
+          />
 
           {/* User Profile */}
           <UserDetail />
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="flex items-center gap-6 mt-6 px-2">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="font-medium">124</span>
-          <span className="text-gray-500">Active folders</span>
-        </div>
-        <div className="h-4 w-px bg-gray-200"></div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span className="font-medium">89%</span>
-          <span className="text-gray-500">Storage used</span>
-        </div>
-      </div>
+      
     </nav>
   );
 };
