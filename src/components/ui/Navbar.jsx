@@ -9,17 +9,13 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 ">
         {/* Logo Section */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-            <Cloud className="w-6 h-6 text-white" />
-          </div>
+         
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 NEXTCLOUD
               </h1>
-              <span className="px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full">
-                Beta
-              </span>
+             
             </div>
             <p className="text-sm text-gray-500 mt-1">
               Your organized digital workspace
