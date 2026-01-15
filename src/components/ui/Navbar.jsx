@@ -12,6 +12,7 @@ import {
 import { Link } from "react-router-dom";
 import CreateFolderButton from "./CreateFolderButton";
 import UserDropdown from "./UserDropdown";
+import UserDetail from "./UserDetail";
 
 const Navbar = () => {
   const { profile, loading } = useProfile();
@@ -47,7 +48,8 @@ const Navbar = () => {
 
        
           {/* User Profile */}
-        <UserDropdown/>
+        {/* <UserDropdown/> */}
+        <UserDetail/>
         </div>
       </div>
     </nav>
