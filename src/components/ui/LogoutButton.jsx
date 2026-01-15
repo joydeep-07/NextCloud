@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../services/auth.service";
+import { FiLogOut } from "react-icons/fi";
 
 const LogoutButton = () => {
   const navigate = useNavigate();
@@ -16,9 +17,10 @@ const LogoutButton = () => {
   return (
     <button
       onClick={handleLogout}
-      className="mt-auto bg-red-500 hover:bg-red-600 text-white w-full px-3 py-2 rounded cursor-pointer"
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
     >
-      Logout
+      <FiLogOut className="w-4 h-4" />
+      Sign Out
     </button>
   );
 };
