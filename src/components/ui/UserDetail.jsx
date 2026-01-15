@@ -3,6 +3,8 @@ import { FaRegUser } from "react-icons/fa6";
 import { FiLogOut, FiSettings, FiUser, FiChevronRight } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import LogoutButton from "./LogoutButton";
+// 1. Import your custom hook
+import { useProfile } from "../../utils/useProfile";
 
 const dropdownVariants = {
   hidden: { opacity: 0, y: -10, scale: 0.96 },
@@ -24,12 +26,8 @@ const UserDetail = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // --- FALSE DATA ---
-  const user = {
-    name: "Alex",
-    surname: "Rivers",
-    email: "alex.rivers@design.io",
-  };
+  // 2. Consume the hook
+  const { profile, loading } = useProfile();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -66,16 +64,34 @@ const UserDetail = () => {
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-600 text-white shadow-md shadow-blue-200">
                   <span className="text-sm font-bold tracking-tighter">
-                    {user.name[0]}
-                    {user.surname[0]}
+                    {/* 3. Extract Initials Safely */}
+                    {loading ? (
+                      "..."
+                    ) : (
+                      <>
+                        {profile?.first_name?.[0]}
+                        {profile?.last_name?.[0]}
+                      </>
+                    )}
                   </span>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {user.name} {user.surname}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  {loading ? (
+                    <div className="animate-pulse flex flex-col gap-2">
+                      <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                      <div className="h-2 w-32 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm font-bold text-gray-900 truncate">
+                        {profile?.first_name} {profile?.last_name}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {profile?.email}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -100,13 +116,12 @@ const UserDetail = () => {
 
               <div className="my-1 border-t border-gray-100" />
 
-              <LogoutButton/>
+              <LogoutButton />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Invisible Background overlay to catch clicks */}
       {isOpen && (
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
       )}
