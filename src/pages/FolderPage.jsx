@@ -53,30 +53,33 @@ const FolderPage = () => {
 
   /* ================= UPLOAD FILE ================= */
   const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length === 0) return;
 
     try {
       setUploading(true);
-      const filePath = `${user.id}/${id}/${Date.now()}-${file.name}`;
 
-      // 1. Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("files")
-        .upload(filePath, file);
+      for (const file of selectedFiles) {
+        const filePath = `${user.id}/${id}/${Date.now()}-${file.name}`;
 
-      if (uploadError) throw uploadError;
+        // 1️⃣ Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from("files")
+          .upload(filePath, file);
 
-      // 2. Save metadata to DB
-      const { error: dbError } = await supabase.from("files").insert({
-        name: file.name,
-        size: file.size,
-        folder_id: id,
-        owner_id: user.id,
-        path: filePath,
-      });
+        if (uploadError) throw uploadError;
 
-      if (dbError) throw dbError;
+        // 2️⃣ Save metadata
+        const { error: dbError } = await supabase.from("files").insert({
+          name: file.name,
+          size: file.size,
+          folder_id: id,
+          owner_id: user.id,
+          path: filePath,
+        });
+
+        if (dbError) throw dbError;
+      }
 
       await fetchFiles();
     } catch (err) {
@@ -86,6 +89,7 @@ const FolderPage = () => {
       e.target.value = "";
     }
   };
+
 
   useEffect(() => {
     if (!user) return;
@@ -138,6 +142,7 @@ const FolderPage = () => {
             ref={fileInputRef}
             type="file"
             hidden
+            multiple
             onChange={handleFileUpload}
           />
         </div>
