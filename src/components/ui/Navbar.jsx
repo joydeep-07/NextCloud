@@ -24,10 +24,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-6">
           {/* Quick Actions */}
           <h1 className="text-lg font-medium text-neutral-700/80 ">NEXT CLOUD</h1>
-          <div className="hidden md:flex border rounded border-gray-800/20 items-center space-x-4">
-            <CreateFolderButton/>
-          
-          </div>
+         
         </div>
 
         {/* Right Section */}
