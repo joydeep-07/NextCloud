@@ -12,7 +12,7 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
           <div>
             <div className="flex items-center gap-2">
               <h1
-                className="heading-font text-3xl font-bold tracking-tight"
+                className="heading-font text-2xl font-medium tracking-wide"
                 style={{ color: "var(--accent-primary)" }}
               >
                 NEXTCLOUD
