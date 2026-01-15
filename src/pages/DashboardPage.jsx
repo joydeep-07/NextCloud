@@ -14,6 +14,8 @@ const DashboardPage = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("grid");
+  const [storageUsed, setStorageUsed] = useState("10737418249"); // in bytes
+  const [storageLoading, setStorageLoading] = useState(true);
 
   const fetchFolders = async () => {
     if (!user) return;
@@ -28,13 +30,38 @@ const DashboardPage = () => {
     setLoading(false);
   };
 
+  const fetchStorageUsage = async () => {
+    if (!user) return;
+    setStorageLoading(true);
+    // Fetch total storage used from your storage table or calculate from files
+    // This is a placeholder - you'll need to implement based on your data structure
+    const { data, error } = await supabase
+      .from("files") // or your storage tracking table
+      .select("size")
+      .eq("owner_id", user.id);
+    
+    if (!error && data) {
+      const totalUsed = data.reduce((sum, file) => sum + (file.size || 0), 0);
+      setStorageUsed(totalUsed);
+    }
+    setStorageLoading(false);
+  };
+
   useEffect(() => {
     fetchFolders();
+    fetchStorageUsage();
   }, [user]);
 
   const filteredFolders = folders.filter((folder) =>
     folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Calculate storage values
+  const totalStorageGB = 15;
+  const totalStorageBytes = totalStorageGB * 1024 * 1024 * 1024; // 15GB in bytes
+  const usedGB = storageUsed / (1024 * 1024 * 1024);
+  const freeGB = totalStorageGB - usedGB;
+  const percentageUsed = (usedGB / totalStorageGB) * 100;
 
   return (
     <div className="min-h-screen p-4 md:p-8 transition-colors duration-400">
@@ -56,18 +83,35 @@ const DashboardPage = () => {
             style={{ borderColor: "var(--border-light)" }}
           >
             <div>
-              <h2
-                className="text-xl font-bold heading-font"
-                style={{ color: "var(--text-main)" }}
-              >
-                Your Folders
-              </h2>
-              <p
-                className="text-sm opacity-70"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                {filteredFolders.length} items
-              </p>
+              {/* Display a progessbar that show how moch space left and how much used out og 15GB */}
+              <div className="w-64">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-medium" style={{ color: "var(--text-main)" }}>
+                    Storage
+                  </span>
+                 
+                </div>
+                <div 
+                  className="h-1 rounded-full overflow-hidden"
+                  style={{ backgroundColor: "var(--bg-secondary)" }}
+                >
+                  <div 
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ 
+                      backgroundColor: "var(--accent-primary)",
+                      width: `${percentageUsed}%`
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs mt-1">
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {freeGB.toFixed(1)}GB free
+                  </span>
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {percentageUsed.toFixed(0)}% used
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-center items-center gap-5">
