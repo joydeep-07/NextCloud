@@ -5,6 +5,7 @@ import CreateFolderButton from "../components/ui/CreateFolderButton";
 import CreateFolderModal from "../components/ui/CreateFolderModal";
 import Navbar from "../components/ui/Navbar";
 import { Folder, Clock, ChevronRight, Grid, List } from "lucide-react";
+import { h1 } from "framer-motion/client";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -47,11 +48,8 @@ const DashboardPage = () => {
 
         {/* Folder List Container */}
         <div
-          className="border overflow-hidden transition-all"
-          style={{
-            backgroundColor: "var(--bg-main)",
-            borderColor: "var(--border-light)",
-          }}
+          className=" overflow-hidden transition-all"
+        
         >
           <div
             className="p-6 border-b flex items-center justify-between"
@@ -116,12 +114,7 @@ const DashboardPage = () => {
 
           <div className="p-6">
             {loading ? (
-              <div className="flex justify-center py-12">
-                <div
-                  className="animate-spin rounded-full h-8 w-8 border-b-2"
-                  style={{ borderColor: "var(--accent-primary)" }}
-                ></div>
-              </div>
+             <h1>Loading...</h1>
             ) : (
               <div
                 className={
@@ -153,39 +146,6 @@ const DashboardPage = () => {
   );
 };
 
-const StatCard = ({ title, value, icon }) => (
-  <div
-    className="p-5 rounded-2xl border flex items-center justify-between transition-all hover:shadow-md"
-    style={{
-      backgroundColor: "var(--bg-main)",
-      borderColor: "var(--border-light)",
-    }}
-  >
-    <div>
-      <p
-        className="text-sm font-medium opacity-70"
-        style={{ color: "var(--text-secondary)" }}
-      >
-        {title}
-      </p>
-      <p
-        className="text-2xl font-bold mt-1"
-        style={{ color: "var(--text-main)" }}
-      >
-        {value}
-      </p>
-    </div>
-    <div
-      className="p-3 rounded-xl"
-      style={{
-        backgroundColor: "var(--bg-secondary)",
-        color: "var(--accent-primary)",
-      }}
-    >
-      {icon}
-    </div>
-  </div>
-);
 
 const FolderItem = ({ folder, viewMode }) => (
   <div
@@ -226,10 +186,7 @@ const FolderItem = ({ folder, viewMode }) => (
         {folder.name}
       </h3>
     </div>
-    <ChevronRight
-      className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-all"
-      style={{ color: "var(--accent-primary)" }}
-    />
+    
   </div>
 );
 
