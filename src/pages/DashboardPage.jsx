@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import CreateFolderButton from "../components/ui/CreateFolderButton";
 import CreateFolderModal from "../components/ui/CreateFolderModal";
 import Navbar from "../components/ui/Navbar";
-import { Folder, Clock, ChevronRight } from "lucide-react";
+import { Folder, Clock, ChevronRight, Grid, List } from "lucide-react";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -36,8 +36,8 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-      <div className="">
+    <div className="min-h-screen p-4 md:p-8 transition-colors duration-400">
+      <div className="px-15">
         <Navbar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -45,45 +45,83 @@ const DashboardPage = () => {
           setViewMode={setViewMode}
         />
 
-        {/* Stats Bar remains in Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <StatCard
-            title="Total Folders"
-            value={folders.length}
-            icon={<Folder className="text-blue-600" />}
-            bgColor="bg-blue-50"
-          />
-          <StatCard
-            title="Recently Added"
-            value={folders.length}
-            icon={<Clock className="text-green-600" />}
-            bgColor="bg-green-50"
-          />
-          <StatCard
-            title="Storage"
-            value="15 GB"
-            icon={<Folder className="text-purple-600" />}
-            bgColor="bg-purple-50"
-          />
-        </div>
-
         {/* Folder List Container */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+        <div
+          className="border overflow-hidden transition-all"
+          style={{
+            backgroundColor: "var(--bg-main)",
+            borderColor: "var(--border-light)",
+          }}
+        >
+          <div
+            className="p-6 border-b flex items-center justify-between"
+            style={{ borderColor: "var(--border-light)" }}
+          >
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2
+                className="text-xl font-bold heading-font"
+                style={{ color: "var(--text-main)" }}
+              >
                 Your Folders
               </h2>
-              <p className="text-sm text-gray-500">
+              <p
+                className="text-sm opacity-70"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {filteredFolders.length} items
               </p>
             </div>
-            <CreateFolderButton onClick={() => setIsCreateOpen(true)} />
+
+            <div className="flex justify-center items-center gap-5">
+              <div
+                className="flex items-center p-1"
+               
+              >
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 `}
+                  style={{
+                  
+                    color:
+                      viewMode === "grid"
+                        ? "var(--accent-primary)"
+                        : "var(--text-main)",
+                  
+                  }}
+                >
+                  <Grid className="w-4 h-4" />
+                  <span className="text-sm font-medium">Grid</span>
+                </button>
+
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 `}
+                  style={{
+                  
+                    color:
+                      viewMode === "list"
+                        ? "var(--accent-primary)"
+                        : "var(--text-main)",
+                   
+                  }}
+                >
+                  <List className="w-4 h-4" />
+                  <span className="text-sm font-medium">List</span>
+                </button>
+              </div>
+
+              <CreateFolderButton onClick={() => setIsCreateOpen(true)} />
+            </div>
           </div>
 
           <div className="p-6">
             {loading ? (
-             <h1>Loading ...</h1>
+              <div className="flex justify-center py-12">
+                <div
+                  className="animate-spin rounded-full h-8 w-8 border-b-2"
+                  style={{ borderColor: "var(--accent-primary)" }}
+                ></div>
+              </div>
             ) : (
               <div
                 className={
@@ -115,34 +153,83 @@ const DashboardPage = () => {
   );
 };
 
-// Sub-components for cleaner code
-const StatCard = ({ title, value, icon, bgColor }) => (
-  <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center justify-between">
+const StatCard = ({ title, value, icon }) => (
+  <div
+    className="p-5 rounded-2xl border flex items-center justify-between transition-all hover:shadow-md"
+    style={{
+      backgroundColor: "var(--bg-main)",
+      borderColor: "var(--border-light)",
+    }}
+  >
     <div>
-      <p className="text-sm font-medium text-gray-600">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+      <p
+        className="text-sm font-medium opacity-70"
+        style={{ color: "var(--text-secondary)" }}
+      >
+        {title}
+      </p>
+      <p
+        className="text-2xl font-bold mt-1"
+        style={{ color: "var(--text-main)" }}
+      >
+        {value}
+      </p>
     </div>
-    <div className={`p-3 ${bgColor} rounded-xl`}>{icon}</div>
+    <div
+      className="p-3 rounded-xl"
+      style={{
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--accent-primary)",
+      }}
+    >
+      {icon}
+    </div>
   </div>
 );
 
 const FolderItem = ({ folder, viewMode }) => (
   <div
-    className={`group border border-gray-200 rounded-xl transition-all cursor-pointer hover:border-blue-300 bg-white ${
+    className={`group border rounded-xl transition-all cursor-pointer ${
       viewMode === "grid"
-        ? "p-5 hover:shadow-md"
-        : "p-4 flex items-center justify-between hover:bg-blue-50"
+        ? "p-5 hover:shadow-lg"
+        : "p-4 flex items-center justify-between"
     }`}
+    style={{
+      backgroundColor: "var(--bg-main)",
+      borderColor: "var(--border-light)",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.borderColor = "var(--accent-primary)";
+      if (viewMode !== "grid")
+        e.currentTarget.style.backgroundColor = "var(--bg-secondary)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.borderColor = "var(--border-light)";
+      if (viewMode !== "grid")
+        e.currentTarget.style.backgroundColor = "var(--bg-main)";
+    }}
   >
     <div className="flex items-center gap-4">
-      <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+      <div
+        className="p-2 rounded-lg"
+        style={{
+          backgroundColor: "var(--bg-secondary)",
+          color: "var(--accent-primary)",
+        }}
+      >
         <Folder className="w-5 h-5" />
       </div>
-      <h3 className="font-medium text-gray-900 truncate max-w-[150px]">
+      <h3
+        className="font-medium truncate max-w-[150px]"
+        style={{ color: "var(--text-main)" }}
+      >
         {folder.name}
       </h3>
     </div>
-    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+    <ChevronRight
+      className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-all"
+      style={{ color: "var(--accent-primary)" }}
+    />
   </div>
 );
 

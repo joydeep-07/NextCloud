@@ -64,68 +64,7 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
 
         {/* View Toggle and User Section */}
         <div className="flex items-center gap-4">
-          {/* View Toggle */}
-          <div
-            className="flex items-center p-1 rounded-xl border"
-            style={{
-              backgroundColor: "var(--bg-secondary)",
-              borderColor: "var(--border-light)",
-            }}
-          >
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-                viewMode === "grid"
-                  ? "shadow-md"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-              style={{
-                backgroundColor:
-                  viewMode === "grid" ? "var(--bg-main)" : "transparent",
-                color:
-                  viewMode === "grid"
-                    ? "var(--accent-primary)"
-                    : "var(--text-main)",
-                border:
-                  viewMode === "grid"
-                    ? "1px solid var(--border-light)"
-                    : "1px solid transparent",
-              }}
-            >
-              <Grid className="w-4 h-4" />
-              <span className="text-sm font-medium">Grid</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode("list")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-                viewMode === "list"
-                  ? "shadow-md"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-              style={{
-                backgroundColor:
-                  viewMode === "list" ? "var(--bg-main)" : "transparent",
-                color:
-                  viewMode === "list"
-                    ? "var(--accent-primary)"
-                    : "var(--text-main)",
-                border:
-                  viewMode === "list"
-                    ? "1px solid var(--border-light)"
-                    : "1px solid transparent",
-              }}
-            >
-              <List className="w-4 h-4" />
-              <span className="text-sm font-medium">List</span>
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div
-            className="h-8 w-px hidden md:block"
-            style={{ backgroundColor: "var(--border-light)" }}
-          />
+        
 
           {/* User Profile */}
           <UserDetail />
