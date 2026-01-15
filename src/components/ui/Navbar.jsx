@@ -4,7 +4,7 @@ import UserDetail from "./UserDetail";
 
 const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
   return (
-    <nav className="w-full mb-8 transition-all">
+    <nav className="w-full transition-all">
       {/* Main Navigation Bar */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 ">
         {/* Logo Section */}

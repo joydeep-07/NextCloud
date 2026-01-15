@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import CreateFolderButton from "../components/ui/CreateFolderButton";
 import CreateFolderModal from "../components/ui/CreateFolderModal";
-import Navbar from "../components/ui/Navbar";
-import { Folder, Clock, ChevronRight, Grid, List } from "lucide-react";
-import { h1 } from "framer-motion/client";
+import { Folder, Grid, List } from "lucide-react";
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Consume state from AppLayout
+  const { searchTerm, viewMode, setViewMode } = useOutletContext();
+
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
-  const [storageUsed, setStorageUsed] = useState("10737418249"); // in bytes
+  const [storageUsed, setStorageUsed] = useState("10737418249");
   const [storageLoading, setStorageLoading] = useState(true);
 
   const fetchFolders = async () => {
@@ -33,13 +35,11 @@ const DashboardPage = () => {
   const fetchStorageUsage = async () => {
     if (!user) return;
     setStorageLoading(true);
-    // Fetch total storage used from your storage table or calculate from files
-    // This is a placeholder - you'll need to implement based on your data structure
     const { data, error } = await supabase
-      .from("files") // or your storage tracking table
+      .from("files")
       .select("size")
       .eq("owner_id", user.id);
-    
+
     if (!error && data) {
       const totalUsed = data.reduce((sum, file) => sum + (file.size || 0), 0);
       setStorageUsed(totalUsed);
@@ -56,50 +56,40 @@ const DashboardPage = () => {
     folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate storage values
+  // Storage calculations kept exactly as before
   const totalStorageGB = 15;
-  const totalStorageBytes = totalStorageGB * 1024 * 1024 * 1024; // 15GB in bytes
   const usedGB = storageUsed / (1024 * 1024 * 1024);
   const freeGB = totalStorageGB - usedGB;
-  const percentageUsed = (usedGB / totalStorageGB) * 100;
+  const percentageUsed = Math.min((usedGB / totalStorageGB) * 100, 100);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 transition-colors duration-400">
+    <div className=" px-4 transition-colors duration-400">
       <div className="px-15">
-        <Navbar
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
-
-        {/* Folder List Container */}
-        <div
-          className=" overflow-hidden transition-all"
-        
-        >
+        <div className="overflow-hidden transition-all">
+          {/* Header with Storage Progress Bar */}
           <div
             className="p-6 border-b flex items-center justify-between"
             style={{ borderColor: "var(--border-light)" }}
           >
             <div>
-              {/* Display a progessbar that show how moch space left and how much used out og 15GB */}
               <div className="w-64">
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium" style={{ color: "var(--text-main)" }}>
+                  <span
+                    className="font-medium"
+                    style={{ color: "var(--text-main)" }}
+                  >
                     Storage
                   </span>
-                 
                 </div>
-                <div 
+                <div
                   className="h-1 rounded-full overflow-hidden"
                   style={{ backgroundColor: "var(--bg-secondary)" }}
                 >
-                  <div 
+                  <div
                     className="h-full rounded-full transition-all duration-300"
-                    style={{ 
+                    style={{
                       backgroundColor: "var(--accent-primary)",
-                      width: `${percentageUsed}%`
+                      width: `${percentageUsed}%`,
                     }}
                   />
                 </div>
@@ -115,20 +105,15 @@ const DashboardPage = () => {
             </div>
 
             <div className="flex justify-center items-center gap-5">
-              <div
-                className="flex items-center p-1"
-               
-              >
+              <div className="flex items-center p-1">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 `}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
                   style={{
-                  
                     color:
                       viewMode === "grid"
                         ? "var(--accent-primary)"
                         : "var(--text-main)",
-                  
                   }}
                 >
                   <Grid className="w-4 h-4" />
@@ -137,14 +122,12 @@ const DashboardPage = () => {
 
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 `}
+                  className="flex items-center gap-2 px-4 py-2 transition-all duration-300"
                   style={{
-                  
                     color:
                       viewMode === "list"
                         ? "var(--accent-primary)"
                         : "var(--text-main)",
-                   
                   }}
                 >
                   <List className="w-4 h-4" />
@@ -156,9 +139,10 @@ const DashboardPage = () => {
             </div>
           </div>
 
+          {/* Grid/List Content */}
           <div className="p-6">
             {loading ? (
-             <h1>Loading...</h1>
+              <h1 style={{ color: "var(--text-main)" }}>Loading...</h1>
             ) : (
               <div
                 className={
@@ -172,6 +156,7 @@ const DashboardPage = () => {
                     key={folder.id}
                     folder={folder}
                     viewMode={viewMode}
+                    onClick={() => navigate(`/folder/${folder.id}`)}
                   />
                 ))}
               </div>
@@ -190,9 +175,10 @@ const DashboardPage = () => {
   );
 };
 
-
-const FolderItem = ({ folder, viewMode }) => (
+// FolderItem component kept exactly as original
+const FolderItem = ({ folder, viewMode, onClick }) => (
   <div
+    onClick={onClick}
     className={`group border rounded-xl transition-all cursor-pointer ${
       viewMode === "grid"
         ? "p-5 hover:shadow-lg"
@@ -223,6 +209,7 @@ const FolderItem = ({ folder, viewMode }) => (
       >
         <Folder className="w-5 h-5" />
       </div>
+
       <h3
         className="font-medium truncate max-w-[150px]"
         style={{ color: "var(--text-main)" }}
@@ -230,7 +217,6 @@ const FolderItem = ({ folder, viewMode }) => (
         {folder.name}
       </h3>
     </div>
-    
   </div>
 );
 
