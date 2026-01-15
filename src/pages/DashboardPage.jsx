@@ -1,16 +1,18 @@
-import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import CreateFolderButton from "../components/ui/CreateFolderButton";
+import CreateFolderModal from "../components/ui/CreateFolderModal";
 
 const DashboardPage = () => {
-  const { profile, loading } = useAuth();
-
-  if (loading) return <p>Loading...</p>;
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
-  <>
-  <div className="h-full w-full ">
-    This is Dashboard page
-  </div>
-  </>
+    <div>
+      <CreateFolderButton onClick={() => setIsCreateOpen(true)} />
+
+      {isCreateOpen && (
+        <CreateFolderModal onClose={() => setIsCreateOpen(false)} />
+      )}
+    </div>
   );
 };
 

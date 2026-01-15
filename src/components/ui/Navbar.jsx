@@ -18,11 +18,12 @@ const Navbar = () => {
   const { profile, loading } = useProfile();
 
   return (
-    <nav className="sticky top-0 z-50 w-full px-6 py-4 bg-white border-b border-gray-100 shadow-sm backdrop-blur-sm bg-white/95">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <nav className="sticky top-0 z-50 w-full px-6 py-3 backdrop-blur-sm ">
+      <div className=" mx-auto flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center space-x-6">
           {/* Quick Actions */}
+          <h1 className="text-lg font-medium text-neutral-700/80 ">NEXT CLOUD</h1>
           <div className="hidden md:flex border rounded border-gray-800/20 items-center space-x-4">
             <CreateFolderButton/>
           
