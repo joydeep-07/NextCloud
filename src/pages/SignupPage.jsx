@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { FiUser, FiMail, FiLock } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { signUp } from "../services/auth.service";
 
 const SignupPage = () => {
-  const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -15,6 +13,7 @@ const SignupPage = () => {
   });
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -27,6 +26,7 @@ const SignupPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
@@ -45,10 +45,17 @@ const SignupPage = () => {
 
       await signUp(signupData);
 
-      navigate("/dashboard");
+      setSuccess(
+        "Account registered successfully. Please check your email inbox and verify your email to login."
+      );
     } catch (err) {
       console.error(err);
-      setError(err.message || "Signup failed");
+
+      if (err?.message?.toLowerCase().includes("already")) {
+        setError("Email already registered");
+      } else {
+        setError(err.message || "Signup failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -135,13 +142,19 @@ const SignupPage = () => {
           />
         </div>
 
+        {/* Error Message */}
         {error && (
           <p className="text-red-500 text-sm mb-3 text-center">{error}</p>
         )}
 
+        {/* Success Message */}
+        {success && (
+          <p className="text-green-600 text-sm mb-3 text-center">{success}</p>
+        )}
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || success}
           className="w-full py-3 font-medium rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-70"
         >
           {loading ? "Creating Account..." : "Create Account"}

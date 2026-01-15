@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-
+// SIGN UP
 export const signUp = async ({ email, password, firstName, lastName }) => {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -12,29 +12,36 @@ export const signUp = async ({ email, password, firstName, lastName }) => {
     },
   });
 
-  if (error) throw error;
+ 
+  if (error) {
+    throw error;
+  }
 
-  if (!data.user) {
-    throw new Error("Signup failed");
+  if (data?.user?.identities?.length === 0) {
+    throw new Error("Email already registered");
+  }
+
+  // New user created successfully
+  return data.user;
+};
+
+// LOGIN
+export const login = async ({ email, password }) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    throw error;
   }
 
   return data.user;
 };
 
-
-
-
-export const login = async ({ email, password }) => {
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  
-
-  if (error) throw error;
-};
-
+/**
+ * LOGOUT
+ */
 export const logout = async () => {
   await supabase.auth.signOut();
 };
