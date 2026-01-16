@@ -2,23 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import {
-  Folder,
-  Upload,
-  Share2,
-  ArrowLeft,
-  Grid,
-  List,
-  Users,
-  FileIcon,
-  X,
-} from "lucide-react";
+import { Folder, Upload, Share2, ArrowLeft, Grid, List, X } from "lucide-react";
 import ShareFolderModal from "../components/ui/ShareFolderModal";
 import FileItem from "../components/ui/FileItem";
-
-/* ============================
-        FOLDER PAGE
-============================ */
+import FolderSkeleton from "../components/ui/FolderSkeleton";
 
 const FolderPage = () => {
   const { id } = useParams();
@@ -34,7 +21,6 @@ const FolderPage = () => {
   const [isOwner, setIsOwner] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  /* ================= FETCH FOLDER ================= */
   const fetchFolder = async () => {
     const { data } = await supabase
       .from("folders")
@@ -44,11 +30,10 @@ const FolderPage = () => {
 
     if (data) {
       setFolder(data);
-      setIsOwner(data.owner_id === user.id);
+      setIsOwner(data.owner_id === user?.id);
     }
   };
 
-  /* ================= FETCH FILES ================= */
   const fetchFiles = async () => {
     const { data } = await supabase
       .from("files")
@@ -59,7 +44,6 @@ const FolderPage = () => {
     setFiles(data || []);
   };
 
-  /* ================= UPLOAD FILE ================= */
   const handleFileUpload = async (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length === 0) return;
@@ -95,98 +79,146 @@ const FolderPage = () => {
     Promise.all([fetchFolder(), fetchFiles()]).finally(() => setLoading(false));
   }, [user, id]);
 
-  if (loading) return <p className="p-6 text-gray-500">Loading folder...</p>;
-  if (!folder) return <p className="p-6 text-red-500">Folder not found</p>;
+  if (loading)
+    return (
+      <>
+     <FolderSkeleton/>
+      </>
+    );
+  if (!folder) return <div className="p-8 text-red-500">Folder not found</div>;
 
   return (
-    <div className="min-h-screen p-6 max-w-7xl mx-auto">
-      {/* ================= HEADER ================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="p-2 rounded-lg hover:bg-gray-100"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+    <div className="min-h-screen bg-[var(--bg-main)] p-6 md:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="p-2.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+            </button>
 
-          <div className="flex items-center gap-3">
-            <Folder className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold">{folder.name}</h1>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-[var(--bg-gradient)] rounded-lg">
+                <Folder className="w-7 h-7 text-[var(--accent-primary)]" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-main)] truncate max-w-[65vw] md:max-w-none">
+                {folder.name}
+              </h1>
+            </div>
+
+            {!isOwner && (
+              <span className="text-xs px-3 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-light)]">
+                Collaborator
+              </span>
+            )}
           </div>
 
-          {!isOwner && (
-            <span className="text-xs px-3 py-1 rounded-full bg-gray-100">
-              Collaborator
-            </span>
-          )}
-        </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {isOwner && (
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="
+                  flex items-center gap-2 
+                  px-4 py-2 text-sm font-medium
+                  rounded-lg border border-[var(--border-light)]
+                  hover:bg-[var(--bg-secondary)] 
+                  hover:border-[var(--accent-secondary)]/40
+                  transition-all
+                "
+              >
+                <Share2 className="w-4 h-4 text-[var(--accent-primary)]" />
+                Share
+              </button>
+            )}
 
-        <div className="flex gap-3">
-          {isOwner && (
             <button
-              onClick={() => setShowShareModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg border hover:bg-gray-50"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="
+                flex items-center gap-2 
+                px-5 py-2.5 text-sm font-medium
+                bg-[var(--accent-primary)] text-white
+                rounded-lg shadow-sm
+                hover:bg-[var(--accent-secondary)]
+                disabled:opacity-60 disabled:cursor-not-allowed
+                transition-all
+              "
             >
-              <Share2 className="w-4 h-4" />
-              Share
+              <Upload className="w-4 h-4" />
+              {uploading ? "Uploading..." : "Upload"}
             </button>
-          )}
 
-          <button
-            onClick={() => fileInputRef.current.click()}
-            disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-blue-600 text-white"
-          >
-            <Upload className="w-4 h-4" />
-            {uploading ? "Uploading..." : "Upload"}
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            multiple
-            onChange={handleFileUpload}
-          />
+            <input
+              ref={fileInputRef}
+              type="file"
+              hidden
+              multiple
+              onChange={handleFileUpload}
+            />
+          </div>
         </div>
       </div>
 
-      {/* ================= VIEW TOGGLE ================= */}
-      <div className="flex justify-between mb-6">
-        <p className="text-sm text-gray-500">{files.length} files</p>
+      {/* Controls */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="text-sm text-[var(--text-secondary)]/80">
+          {files.length} {files.length === 1 ? "file" : "files"}
+        </div>
 
-        <div className="flex bg-gray-100 p-1 rounded-lg">
+        <div className="flex bg-[var(--bg-secondary)] p-1 rounded-lg border border-[var(--border-light)]/60">
           <button
             onClick={() => setViewMode("grid")}
-            className={`p-1.5 rounded ${
-              viewMode === "grid" && "bg-white shadow"
-            }`}
+            className={`
+              p-2 rounded-md transition-colors
+              ${
+                viewMode === "grid"
+                  ? "bg-white shadow-sm text-[var(--accent-primary)]"
+                  : "text-[var(--text-secondary)]/70 hover:text-[var(--text-main)]"
+              }
+            `}
           >
-            <Grid className="w-4 h-4" />
+            <Grid className="w-5 h-5" />
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`p-1.5 rounded ${
-              viewMode === "list" && "bg-white shadow"
-            }`}
+            className={`
+              p-2 rounded-md transition-colors
+              ${
+                viewMode === "list"
+                  ? "bg-white shadow-sm text-[var(--accent-primary)]"
+                  : "text-[var(--text-secondary)]/70 hover:text-[var(--text-main)]"
+              }
+            `}
           >
-            <List className="w-4 h-4" />
+            <List className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* ================= FILE LIST ================= */}
+      {/* Files */}
       {files.length === 0 ? (
-        <div className="border-dashed border-2 rounded-xl p-20 text-center text-gray-400">
-          Folder is empty
+        <div
+          className="
+          border-2 border-dashed border-[var(--border-light)] 
+          rounded-2xl p-16 md:p-24 
+          text-center 
+          bg-[var(--bg-secondary)]/50
+        "
+        >
+          <Folder className="w-12 h-12 mx-auto mb-4 text-[var(--text-secondary)]/40" />
+          <p className="text-[var(--text-secondary)]/70 text-lg">
+            This folder is empty
+          </p>
         </div>
       ) : (
         <div
           className={
             viewMode === "grid"
-              ? "grid grid-cols-2 md:grid-cols-4 gap-6"
-              : "flex flex-col gap-2"
+              ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6"
+              : "flex flex-col gap-3"
           }
         >
           {files.map((file) => (
@@ -204,6 +236,5 @@ const FolderPage = () => {
     </div>
   );
 };
-
 
 export default FolderPage;
