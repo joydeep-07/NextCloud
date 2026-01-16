@@ -10,6 +10,7 @@ import DashboardPage from "../pages/DashboardPage";
 import FolderPage from "../pages/FolderPage";
 import InviteAcceptPage from "../pages/InviteAcceptPage";
 import TestSupabase from "../pages/TestSupabase";
+import InvitePage from "../pages/InvitePage";
 
 const router = createBrowserRouter([
   // Redirect root to login
@@ -54,11 +55,12 @@ const router = createBrowserRouter([
   },
 
   // Invite route (can be accessed without login)
-  {
+  
+   {
     path: "/invite/:token",
-    element: <InviteAcceptPage />,
+    element: <InvitePage />,
   },
-
+  
   {
     path: "/test",
     element: <TestSupabase />,
