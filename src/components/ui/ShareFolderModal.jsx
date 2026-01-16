@@ -35,12 +35,13 @@ const ShareFolderModal = ({ folderId, onClose }) => {
   const sendInvite = async (inviteeId) => {
     try {
       setSending(inviteeId);
-
+const inviteToken = crypto.randomUUID();
       const { error } = await supabase.from("folder_invites").insert({
         folder_id: folderId,
         invited_by: user.id,
-        invited_user_id: inviteeId,
+        invited_user_id: inviteeId, // This column doesn't exist in the screenshot!
         status: "pending",
+        token: inviteToken,
       });
 
       if (error) throw error;
