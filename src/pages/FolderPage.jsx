@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import ShareFolderModal from "../components/ui/ShareFolderModal";
+import FileItem from "../components/ui/FileItem";
 
 /* ============================
         FOLDER PAGE
@@ -214,27 +215,7 @@ const FolderPage = () => {
         FILE ITEM
 ============================ */
 
-const FileItem = ({ file, viewMode }) => {
-  const isImage = file.name.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i);
 
-  return (
-    <div
-      className={`border rounded-xl p-3 ${
-        viewMode === "grid" ? "" : "flex items-center gap-4"
-      }`}
-    >
-      <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-lg">
-        <FileIcon className="w-6 h-6 text-gray-400" />
-      </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{file.name}</p>
-        <p className="text-xs text-gray-400">
-          {(file.size / 1024 / 1024).toFixed(2)} MB
-        </p>
-      </div>
-    </div>
-  );
-};
 
 export default FolderPage;
