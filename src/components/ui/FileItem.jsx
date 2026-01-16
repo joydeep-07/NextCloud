@@ -4,6 +4,7 @@ import { FileIcon, X } from "lucide-react";
 
 const FileItem = ({ file, viewMode = "grid" }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
@@ -11,6 +12,7 @@ const FileItem = ({ file, viewMode = "grid" }) => {
   useEffect(() => {
     if (!isImage) return;
 
+    setIsLoading(true);
     const loadPreview = async () => {
       const { data, error } = await supabase.storage
         .from("files")
@@ -23,6 +25,10 @@ const FileItem = ({ file, viewMode = "grid" }) => {
 
     loadPreview();
   }, [file.path, isImage]);
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
 
   const openFullScreen = () => {
     if (!isImage || !previewUrl) return;
@@ -59,6 +65,7 @@ const FileItem = ({ file, viewMode = "grid" }) => {
         {/* Preview / Icon */}
         <div
           className={`
+            relative
             bg-gradient-to-br from-[var(--bg-gradient)] to-white/80
             rounded-lg 
             flex items-center justify-center 
@@ -69,12 +76,31 @@ const FileItem = ({ file, viewMode = "grid" }) => {
           `}
         >
           {isImage && previewUrl ? (
-            <img
-              src={previewUrl}
-              alt={file.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-            />
+            <>
+              {/* Skeleton Loader */}
+              {isLoading && (
+                <div className="absolute inset-0 animate-pulse">
+                  <div className="w-full h-full bg-gradient-to-br from-[var(--bg-gradient)] via-[var(--border-light)] to-[var(--bg-gradient)] bg-[length:400%_400%] animate-pulse" />
+                </div>
+              )}
+
+              {/* Image */}
+              <img
+                src={previewUrl}
+                alt={file.name}
+                className={`
+                  w-full h-full object-cover transition-transform duration-300 group-hover:scale-105
+                  ${
+                    isLoading
+                      ? "opacity-0"
+                      : "opacity-100 transition-opacity duration-300"
+                  }
+                `}
+                loading="lazy"
+                onLoad={handleImageLoad}
+                onError={() => setIsLoading(false)}
+              />
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center text-[var(--text-secondary)]/60">
               <FileIcon className="w-7 h-7 mb-1" strokeWidth={1.6} />
@@ -146,7 +172,7 @@ const FileItem = ({ file, viewMode = "grid" }) => {
               shadow-2xl
               border border-white/10
             "
-            onClick={(e) => e.stopPropagation()} // prevent closing when clicking image
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
