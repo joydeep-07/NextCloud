@@ -165,9 +165,8 @@ const FolderPage = () => {
 
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                   
-                      <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
-                   
+                    <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
+
                     <div className="absolute -inset-1 -z-10"></div>
                   </div>
                   <div>
@@ -323,7 +322,13 @@ const FolderPage = () => {
                 }
               >
                 {filteredFiles.map((file) => (
-                  <FileItem key={file.id} file={file} viewMode={viewMode} />
+                  <FileItem
+                    file={file}
+                    viewMode={viewMode}
+                    currentUserId={user.id}
+                    isOwner={folder.owner_id === user.id}
+                    onDeleted={() => refetchFiles()}
+                  />
                 ))}
               </div>
             )}

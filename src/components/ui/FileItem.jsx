@@ -1,177 +1,150 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
-import { FileIcon, X } from "lucide-react";
+import { FileIcon, X, Trash2 } from "lucide-react";
 
-const FileItem = ({ file, viewMode = "grid" }) => {
+const FileItem = ({
+  file,
+  viewMode = "grid",
+  currentUserId,
+  isOwner,
+  onDeleted, // callback to refresh list
+}) => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
+
+  const canDelete = isOwner || file.owner_id === currentUserId;
 
   useEffect(() => {
     if (!isImage) return;
 
-    setIsLoading(true);
     const loadPreview = async () => {
-      const { data, error } = await supabase.storage
+      const { data } = await supabase.storage
         .from("files")
         .createSignedUrl(file.path, 60 * 60);
 
-      if (!error && data?.signedUrl) {
-        setPreviewUrl(data.signedUrl);
-      }
+      if (data?.signedUrl) setPreviewUrl(data.signedUrl);
+      setIsLoading(false);
     };
 
     loadPreview();
   }, [file.path, isImage]);
 
-  const handleImageLoad = () => {
-    setIsLoading(false);
-  };
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (!canDelete) return;
 
-  const openFullScreen = () => {
-    if (!isImage || !previewUrl) return;
-    setIsFullScreen(true);
-  };
+    const confirm = window.confirm("Delete this file?");
+    if (!confirm) return;
 
-  const closeFullScreen = (e) => {
-    if (e) e.stopPropagation();
-    setIsFullScreen(false);
+    setDeleting(true);
+
+    /* 1. delete from storage */
+    const { error: storageError } = await supabase.storage
+      .from("files")
+      .remove([file.path]);
+
+    if (storageError) {
+      alert(storageError.message);
+      setDeleting(false);
+      return;
+    }
+
+    /* 2. delete db record */
+    const { error: dbError } = await supabase
+      .from("files")
+      .delete()
+      .eq("id", file.id);
+
+    if (dbError) {
+      alert(dbError.message);
+      setDeleting(false);
+      return;
+    }
+
+    onDeleted?.(file.id);
   };
 
   return (
     <>
       <div
         className={`
-          group
-          border border-[var(--border-light)] 
-          rounded-xl 
-          overflow-hidden 
-          transition-all duration-200
-          hover:shadow-md hover:border-[var(--accent-secondary)]/50
+          group relative
+          border border-[var(--border-light)]
+          rounded-xl overflow-hidden
           bg-[var(--bg-secondary)]
-          cursor-${isImage ? "pointer" : "default"}
-          ${
-            viewMode === "grid"
-              ? "p-4 flex flex-col"
-              : "flex items-center gap-4 p-3.5"
-          }
+          transition hover:shadow-md
+          ${viewMode === "grid" ? "p-4" : "p-3.5 flex gap-4"}
         `}
-        onClick={openFullScreen}
-        title={isImage ? "Double-click to view full size" : ""}
+        onClick={() => isImage && setIsFullScreen(true)}
       >
-        {/* Preview / Icon */}
+        {/* DELETE BUTTON */}
+        {canDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="
+              absolute top-2 right-2 z-10
+              p-2 rounded-lg
+              bg-red-500/90 hover:bg-red-600
+              text-white
+              opacity-0 group-hover:opacity-100
+              transition
+            "
+            title="Delete file"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
+
+        {/* Preview */}
         <div
           className={`
-            relative
-            bg-gradient-to-br from-[var(--bg-gradient)] to-white/80
-            rounded-lg 
-            flex items-center justify-center 
-            overflow-hidden 
-            shrink-0
-            border border-[var(--border-light)]/70
-            ${viewMode === "grid" ? "aspect-square w-full mb-4" : "w-14 h-14"}
+            rounded-lg overflow-hidden border
+            ${viewMode === "grid" ? "aspect-square mb-4" : "w-14 h-14"}
           `}
         >
           {isImage && previewUrl ? (
-            <>
-              {/* Skeleton Loader */}
-              {isLoading && (
-                <div className="absolute inset-0 animate-pulse">
-                  <div className="w-full h-full bg-gradient-to-br from-[var(--bg-gradient)] via-[var(--border-light)] to-[var(--bg-gradient)] bg-[length:400%_400%] animate-pulse" />
-                </div>
-              )}
-
-              {/* Image */}
-              <img
-                src={previewUrl}
-                alt={file.name}
-                className={`
-                  w-full h-full object-cover transition-transform duration-300
-                  ${
-                    isLoading
-                      ? "opacity-0"
-                      : "opacity-100 transition-opacity duration-300"
-                  }
-                `}
-                loading="lazy"
-                onLoad={handleImageLoad}
-                onError={() => setIsLoading(false)}
-              />
-            </>
+            <img
+              src={previewUrl}
+              alt={file.name}
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <div className="flex flex-col items-center justify-center text-[var(--text-secondary)]/60">
-              <FileIcon className="w-7 h-7 mb-1" strokeWidth={1.6} />
-              <span className="text-[10px] font-medium opacity-70">
-                {file.name.split(".").pop()?.toUpperCase()}
-              </span>
+            <div className="flex items-center justify-center h-full">
+              <FileIcon />
             </div>
           )}
         </div>
 
-        {/* File Info */}
-        <div className="min-w-0 flex-1">
-          <p
-            className="
-              text-sm font-medium 
-              text-[var(--text-main)] 
-              truncate
-              group-hover:text-[var(--accent-primary)]
-              transition-colors
-            "
-            title={file.name}
-          >
-            {file.name}
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{file.name}</p>
+          <p className="text-xs text-muted">
+            {(file.size / 1024 / 1024).toFixed(2)} MB
           </p>
-
-          <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)]/70">
-            <span>{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-            <span>•</span>
-            <span>
-              {new Date(
-                file.created_at || file.updated_at || Date.now()
-              ).toLocaleDateString([], {
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-          </div>
         </div>
       </div>
 
-      {/* Fullscreen Modal */}
+      {/* FULLSCREEN IMAGE */}
       {isFullScreen && previewUrl && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-          onClick={closeFullScreen}
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
+          onClick={() => setIsFullScreen(false)}
         >
           <button
-            onClick={closeFullScreen}
-            className="
-              absolute top-6 right-6 
-              p-3 rounded-full 
-              bg-black/40 hover:bg-black/60 
-              text-white 
-              transition-colors
-              backdrop-blur-sm
-            "
-            aria-label="Close fullscreen"
+            className="absolute top-6 right-6 text-white"
+            onClick={() => setIsFullScreen(false)}
           >
             <X size={28} />
           </button>
-
           <img
             src={previewUrl}
             alt={file.name}
-            className="
-              max-w-[95vw] max-h-[95vh] 
-              object-contain 
-              rounded-lg 
-              shadow-2xl
-              border border-white/10
-            "
-            onClick={(e) => e.stopPropagation()}
+            className="max-w-[95vw] max-h-[95vh]"
           />
         </div>
       )}

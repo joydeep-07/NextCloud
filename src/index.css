@@ -21,8 +21,8 @@ button{
   --text-main: #191919; 
   --text-secondary: #212121;
 
-  --accent-primary: rgb(26, 124, 26);
-  --accent-secondary: #66bb6a;
+  --accent-primary: #ff7d00;
+  --accent-secondary: #ffb563;
 
   --border-light: #e0e0e0;
 }
