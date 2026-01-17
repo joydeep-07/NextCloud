@@ -103,7 +103,7 @@ const FileItem = ({
         {/* Preview */}
         <div
           className={`
-            rounded-lg overflow-hidden border
+            rounded-lg overflow-hidden 
             ${viewMode === "grid" ? "aspect-square mb-4" : "w-14 h-14"}
           `}
         >

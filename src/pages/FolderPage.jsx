@@ -58,6 +58,24 @@ const FolderPage = () => {
     setFiles(data || []);
   };
 
+  // Helper for better search (case-insensitive + trim + diacritics support)
+  const normalizeString = (str) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove accents
+      .toLowerCase()
+      .trim();
+  };
+
+  const filteredFiles = files.filter((file) => {
+    if (!searchQuery.trim()) return true;
+
+    const normalizedQuery = normalizeString(searchQuery);
+    const normalizedName = normalizeString(file.name || "");
+
+    return normalizedName.includes(normalizedQuery);
+  });
+
   const handleFileUpload = async (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length === 0) return;
@@ -79,7 +97,7 @@ const FolderPage = () => {
         });
       }
 
-      fetchFiles();
+      await fetchFiles();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -133,6 +151,11 @@ const FolderPage = () => {
     ]);
   };
 
+  // Refresh files after delete (called from FileItem)
+  const refreshFiles = () => {
+    fetchFiles();
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -144,16 +167,12 @@ const FolderPage = () => {
   if (loading) return <FolderSkeleton />;
   if (!folder) return <div className="p-8 text-red-500">Folder not found</div>;
 
-  const filteredFiles = files.filter((file) =>
-    file.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <>
       <div className="min-h-screen bg-[var(--bg-main)]">
         {/* Modern Header */}
-        <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md ">
-          <div className=" mx-15 px-6 py-4">
+        <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
@@ -166,8 +185,6 @@ const FolderPage = () => {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
-
-                    <div className="absolute -inset-1 -z-10"></div>
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-[var(--text-main)] tracking-tight">
@@ -188,7 +205,7 @@ const FolderPage = () => {
                     placeholder="Search files..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2.5 text-sm w-md rounded-full border border-[var(--border-light)] bg-[var(--bg-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all"
+                    className="pl-10 pr-4 py-2.5 text-sm w-64 md:w-80 rounded-full border border-[var(--border-light)] bg-[var(--bg-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all"
                   />
                 </div>
               </div>
@@ -197,8 +214,9 @@ const FolderPage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* Members Section - Modern Card Design */}
+          {/* Members Section */}
           <div className="bg-gradient-to-br from-[var(--bg-main)] to-[var(--bg-secondary)] rounded-2xl border border-[var(--border-light)] p-6 shadow-sm">
+            {/* ... members section remains unchanged ... */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--bg-gradient)]">
@@ -218,7 +236,7 @@ const FolderPage = () => {
                 {isOwner && (
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-[var(--border-light)] text-main rounded-sm hover:shadow-xs  disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="flex items-center gap-2 px-4 py-2.5 border border-[var(--border-light)] text-main rounded-sm hover:shadow-xs disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                   >
                     + Add members
                   </button>
@@ -227,7 +245,7 @@ const FolderPage = () => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-sm hover:shadow-lg  disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-sm hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading..." : "Upload Files"}
@@ -235,6 +253,7 @@ const FolderPage = () => {
               </div>
             </div>
 
+            {/* Members list rendering remains the same */}
             {members.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 mx-auto mb-3 text-[var(--text-secondary)]/30" />
@@ -247,6 +266,7 @@ const FolderPage = () => {
                     key={member.id}
                     className="group relative overflow-hidden rounded-xl bg-[var(--bg-main)] border border-[var(--border-light)] hover:border-[var(--accent-primary)]/30 p-4 transition-all duration-200 hover:shadow-lg"
                   >
+                    {/* ... member card content ... */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[var(--bg-gradient)] font-medium text-[var(--accent-primary)]">
@@ -297,12 +317,12 @@ const FolderPage = () => {
                     <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
                   </div>
                   <h3 className="text-xl font-medium text-[var(--text-main)] mb-2">
-                    {searchQuery ? "No files found" : "Folder is empty"}
+                    {searchQuery.trim() ? "No files found" : "Folder is empty"}
                   </h3>
                   <p className="text-[var(--text-secondary)]/70 mb-6 max-w-md mx-auto">
-                    {searchQuery
+                    {searchQuery.trim()
                       ? "Try a different search term or upload new files"
-                      : "Upload your first file or create a new folder to get started"}
+                      : "Upload your first file to get started"}
                   </p>
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -323,11 +343,12 @@ const FolderPage = () => {
               >
                 {filteredFiles.map((file) => (
                   <FileItem
+                    key={file.id}
                     file={file}
                     viewMode={viewMode}
                     currentUserId={user.id}
-                    isOwner={folder.owner_id === user.id}
-                    onDeleted={() => refetchFiles()}
+                    isOwner={isOwner}
+                    onDeleted={refreshFiles}
                   />
                 ))}
               </div>
