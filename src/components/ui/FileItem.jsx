@@ -50,7 +50,6 @@ const FileItem = ({ file, viewMode = "grid" }) => {
           overflow-hidden 
           transition-all duration-200
           hover:shadow-md hover:border-[var(--accent-secondary)]/50
-          hover:-translate-y-0.5
           bg-[var(--bg-secondary)]
           cursor-${isImage ? "pointer" : "default"}
           ${
@@ -89,7 +88,7 @@ const FileItem = ({ file, viewMode = "grid" }) => {
                 src={previewUrl}
                 alt={file.name}
                 className={`
-                  w-full h-full object-cover transition-transform duration-300 group-hover:scale-105
+                  w-full h-full object-cover transition-transform duration-300
                   ${
                     isLoading
                       ? "opacity-0"
