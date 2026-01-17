@@ -153,7 +153,7 @@ const FolderPage = () => {
       <div className="min-h-screen bg-[var(--bg-main)]">
         {/* Modern Header */}
         <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md ">
-          <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className=" mx-15 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
@@ -165,10 +165,10 @@ const FolderPage = () => {
 
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-[var(--bg-gradient)] shadow-lg">
-                      <Folder className="w-6 h-6 text-[var(--accent-primary)]" />
-                    </div>
-                    <div className="absolute -inset-1 bg-gradient-to-br from-[var(--accent-primary)]/20 to-transparent rounded-xl blur-sm -z-10"></div>
+                   
+                      <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
+                   
+                    <div className="absolute -inset-1 -z-10"></div>
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-[var(--text-main)] tracking-tight">
