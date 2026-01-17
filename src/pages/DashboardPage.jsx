@@ -211,7 +211,9 @@ const FolderItem = ({ folder, viewMode, onClick }) => (
       </div>
 
       <div className="min-w-0">
-        <h3 className="font-medium truncate">{folder.name}</h3>
+        <h3 className=" text-[var(--text-secondary)]/90 text-lg truncate font-body ">
+          {folder.name}
+        </h3>
         {folder.isCollaborator && (
           <p className="text-xs text-[var(--text-secondary)]">
             Shared with you

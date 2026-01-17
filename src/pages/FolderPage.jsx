@@ -145,19 +145,19 @@ const FolderPage = () => {
         {/* HEADER */}
         <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md py-3">
           <div className=" mx-0 md:mx-15 px-4 sm:px-6 ">
-            <div className="flex gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex gap-4 md:flex-row items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition"
+                  className="p-2 rounded-lg hidden md:flex hover:bg-[var(--bg-secondary)] transition"
                 >
                   <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </button>
 
                 <div className="flex items-center gap-3">
-                  <Folder className="w-9 h-9 hidden md:flex text-[var(--accent-primary)]" />
+                  <Folder className="w-8 h-8 text-[var(--accent-primary)]" />
                   <div>
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--text-main)]">
+                    <h1 className="text-2xl font-body md:text-2xl font-medium text-[var(--text-main)]/90">
                       {folder.name}
                     </h1>
                     {/* <p className="text-sm text-[var(--text-secondary)]/70">
@@ -167,7 +167,7 @@ const FolderPage = () => {
                 </div>
               </div>
 
-              <div className="relative w-full sm:w-64 md:w-80">
+              <div className="relative sm:w-64 md:w-110">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]/50" />
                 <input
                   type="text"

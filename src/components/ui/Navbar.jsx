@@ -12,13 +12,13 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
           {/* Logo */}
           <div>
             <h1
-              className="heading-font text-xl sm:text-2xl font-medium tracking-wide"
+              className=" font-heading text-xl sm:text-2xl font-semibold tracking-wide"
               style={{ color: "var(--accent-primary)" }}
             >
               NEXTCLOUD
             </h1>
             <p
-              className="hidden sm:block text-sm opacity-70"
+              className="hidden sm:block text-xs opacity-70"
               style={{ color: "var(--text-secondary)" }}
             >
               Your organized digital workspace
