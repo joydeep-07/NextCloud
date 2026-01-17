@@ -33,38 +33,70 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
         </div>
 
         {/* Search Bar */}
-        <div className="w-full lg:max-w-2xl">
-          <div className="relative">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-              style={{ color: "var(--text-secondary)" }}
-            />
-            <input
-              type="text"
-              placeholder="Search folders, files, or documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-12 py-2 rounded-full focus:outline-none focus:ring-1 transition-all"
-              style={{
-                backgroundColor: "var(--bg-secondary)",
-                color: "var(--text-main)",
-                border: "1px solid var(--border-light)",
-                "--tw-ring-color": "var(--accent-primary)",
-              }}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
-              >
-                ✕
-              </button>
-            )}
+        <div className="flex items-center gap-3 lg:hidden">
+          <div className="w-full lg:max-w-2xl">
+            <div className="relative">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                style={{ color: "var(--text-secondary)" }}
+              />
+              <input
+                type="text"
+                placeholder="Search folders, files, or documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-12 py-2 rounded-full focus:outline-none focus:ring-1 transition-all"
+                style={{
+                  backgroundColor: "var(--bg-secondary)",
+                  color: "var(--text-main)",
+                  border: "1px solid var(--border-light)",
+                  "--tw-ring-color": "var(--accent-primary)",
+                }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-4">
+          <div className="w-full lg:max-w-2xl">
+            <div className="relative">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                style={{ color: "var(--text-secondary)" }}
+              />
+              <input
+                type="text"
+                placeholder="Search folders, files, or documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-12 py-2 rounded-full focus:outline-none focus:ring-1 transition-all"
+                style={{
+                  backgroundColor: "var(--bg-secondary)",
+                  color: "var(--text-main)",
+                  border: "1px solid var(--border-light)",
+                  "--tw-ring-color": "var(--accent-primary)",
+                }}
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
           <Notification />
           <UserDetail />
         </div>
