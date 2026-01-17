@@ -152,7 +152,7 @@ const FolderPage = () => {
     <>
       <div className="min-h-screen bg-[var(--bg-main)]">
         {/* Modern Header */}
-        <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md border-b border-[var(--border-light)]">
+        <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md ">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -189,23 +189,11 @@ const FolderPage = () => {
                     placeholder="Search files..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 text-sm rounded-lg border border-[var(--border-light)] bg-[var(--bg-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all"
+                    className="pl-10 pr-4 py-2.5 text-sm w-md rounded-full border border-[var(--border-light)] bg-[var(--bg-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all"
                   />
                 </div>
 
-                <button className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">
-                  <Filter className="w-5 h-5 text-[var(--text-secondary)]" />
-                </button>
-
-                {isOwner && (
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:shadow-lg transition-all duration-200"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Share
-                  </button>
-                )}
+                
               </div>
             </div>
           </div>
@@ -219,24 +207,15 @@ const FolderPage = () => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-xl hover:shadow-lg hover:bg-[var(--accent-secondary)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-sm hover:shadow-lg hover:bg-[var(--accent-secondary)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading..." : "Upload Files"}
-                </button>
-
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-light)] hover:bg-[var(--bg-secondary)] transition-colors">
-                  <Plus className="w-4 h-4" />
-                  New Folder
                 </button>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg transition-colors">
-                <MoreVertical className="w-5 h-5 text-[var(--text-secondary)]" />
-              </button>
-
               <div className="flex bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--border-light)]">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -260,64 +239,6 @@ const FolderPage = () => {
                 </button>
               </div>
             </div>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            multiple
-            onChange={handleFileUpload}
-          />
-
-          {/* Files Section */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--text-main)]">
-                Files
-                <span className="ml-2 text-sm font-normal text-[var(--text-secondary)]">
-                  ({filteredFiles.length})
-                </span>
-              </h2>
-            </div>
-
-            {filteredFiles.length === 0 ? (
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-primary)]/5 to-transparent rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <div className="relative border-2 border-dashed border-[var(--border-light)] rounded-2xl p-16 text-center bg-[var(--bg-secondary)]/30 backdrop-blur-sm hover:border-[var(--accent-primary)]/30 transition-all duration-300">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[var(--bg-gradient)] mb-6">
-                    <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
-                  </div>
-                  <h3 className="text-xl font-medium text-[var(--text-main)] mb-2">
-                    {searchQuery ? "No files found" : "Folder is empty"}
-                  </h3>
-                  <p className="text-[var(--text-secondary)]/70 mb-6 max-w-md mx-auto">
-                    {searchQuery
-                      ? "Try a different search term or upload new files"
-                      : "Upload your first file or create a new folder to get started"}
-                  </p>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:shadow-lg transition-all duration-200"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload Files
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
-                    : "space-y-3"
-                }
-              >
-                {filteredFiles.map((file) => (
-                  <FileItem key={file.id} file={file} viewMode={viewMode} />
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Members Section - Modern Card Design */}
@@ -386,6 +307,55 @@ const FolderPage = () => {
                       </span>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            hidden
+            multiple
+            onChange={handleFileUpload}
+          />
+
+          {/* Files Section */}
+          <div className="my-12">
+            {filteredFiles.length === 0 ? (
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-primary)]/5 to-transparent rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className="relative border-2 border-dashed border-[var(--border-light)] rounded-2xl p-16 text-center bg-[var(--bg-secondary)]/30 backdrop-blur-sm hover:border-[var(--accent-primary)]/30 transition-all duration-300">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[var(--bg-gradient)] mb-6">
+                    <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
+                  </div>
+                  <h3 className="text-xl font-medium text-[var(--text-main)] mb-2">
+                    {searchQuery ? "No files found" : "Folder is empty"}
+                  </h3>
+                  <p className="text-[var(--text-secondary)]/70 mb-6 max-w-md mx-auto">
+                    {searchQuery
+                      ? "Try a different search term or upload new files"
+                      : "Upload your first file or create a new folder to get started"}
+                  </p>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:shadow-lg transition-all duration-200"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload Files
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
+                    : "space-y-3"
+                }
+              >
+                {filteredFiles.map((file) => (
+                  <FileItem key={file.id} file={file} viewMode={viewMode} />
                 ))}
               </div>
             )}
