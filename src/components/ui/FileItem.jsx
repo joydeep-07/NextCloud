@@ -1,20 +1,21 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { FileIcon, X, Trash2, EllipsisVertical } from "lucide-react";
-import { PiCoinVerticalThin } from "react-icons/pi";
+import AskDelete from "./AskDelete"; // Make sure this path is correct
 
 const FileItem = ({
   file,
   viewMode = "grid",
   currentUserId,
   isOwner,
-  onDeleted, // callback to refresh list
+  onDeleted, // callback to refresh the parent list
 }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const dropdownRef = useRef(null);
   const dotsRef = useRef(null);
@@ -48,55 +49,71 @@ const FileItem = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Load image preview
   useEffect(() => {
-    if (!isImage) return;
+    if (!isImage) {
+      setIsLoading(false);
+      return;
+    }
 
     const loadPreview = async () => {
-      const { data } = await supabase.storage
-        .from("files")
-        .createSignedUrl(file.path, 60 * 60);
+      try {
+        const { data } = await supabase.storage
+          .from("files")
+          .createSignedUrl(file.path, 60 * 60); // 1 hour
 
-      if (data?.signedUrl) setPreviewUrl(data.signedUrl);
-      setIsLoading(false);
+        if (data?.signedUrl) {
+          setPreviewUrl(data.signedUrl);
+        }
+      } catch (err) {
+        console.error("Preview load error:", err);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadPreview();
   }, [file.path, isImage]);
 
-  const handleDelete = async (e) => {
+  const handleDeleteClick = (e) => {
     e.stopPropagation();
-    if (!canDelete) return;
+    if (!canDelete || deleting) return;
+    setShowDeleteModal(true);
+  };
 
-    const confirm = window.confirm("Delete this file?");
-    if (!confirm) return;
-
+  const confirmDelete = async () => {
+    setShowDeleteModal(false);
     setDeleting(true);
 
-    /* 1. delete from storage */
-    const { error: storageError } = await supabase.storage
-      .from("files")
-      .remove([file.path]);
+    try {
+      // 1. Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("files")
+        .remove([file.path]);
 
-    if (storageError) {
-      alert(storageError.message);
+      if (storageError) throw storageError;
+
+      // 2. Delete from database
+      const { error: dbError } = await supabase
+        .from("files")
+        .delete()
+        .eq("id", file.id);
+
+      if (dbError) throw dbError;
+
+      // Success - notify parent
+      onDeleted?.(file.id);
+      setShowDropdown(false);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert(error.message || "Failed to delete file");
+    } finally {
       setDeleting(false);
-      return;
     }
+  };
 
-    /* 2. delete db record */
-    const { error: dbError } = await supabase
-      .from("files")
-      .delete()
-      .eq("id", file.id);
-
-    if (dbError) {
-      alert(dbError.message);
-      setDeleting(false);
-      return;
-    }
-
-    onDeleted?.(file.id);
-    setShowDropdown(false);
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
   };
 
   const handleDotsClick = (e) => {
@@ -107,8 +124,6 @@ const FileItem = ({
   return (
     <>
       <div className="relative">
-        {" "}
-        {/* Wrapper for positioning dropdown */}
         <div
           className={`
             group relative
@@ -120,10 +135,10 @@ const FileItem = ({
           `}
           onClick={() => isImage && setIsFullScreen(true)}
         >
-          {/* DELETE BUTTON (original, can keep or remove) */}
+          {/* Floating Delete Button (optional - mobile hidden) */}
           {canDelete && (
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={deleting}
               className="
                 absolute top-2 right-2 z-10
@@ -132,7 +147,7 @@ const FileItem = ({
                 text-white
                 opacity-0 group-hover:opacity-100
                 transition
-                md:hidden /* Hide on mobile, show in dropdown */
+                md:hidden
               "
               title="Delete file"
             >
@@ -140,7 +155,7 @@ const FileItem = ({
             </button>
           )}
 
-          {/* Preview */}
+          {/* Preview Area */}
           <div
             className={`
               rounded-lg overflow-hidden 
@@ -155,34 +170,32 @@ const FileItem = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <FileIcon />
+              <div className="flex items-center justify-center h-full bg-black/5">
+                <FileIcon size={viewMode === "grid" ? 48 : 32} />
               </div>
             )}
           </div>
 
-          {/* Info */}
+          {/* File Name + Menu */}
           <div className="flex-1 min-w-0 flex justify-between items-center">
-            <div className="">
+            <div className="min-w-0">
               <p className="text-sm font-medium truncate">{file.name}</p>
-           
             </div>
-            <div className="relative">
-              {/* THREE DOTS MENU */}
-              <button
-                ref={dotsRef}
-                onClick={handleDotsClick}
-                className="p-1.5 hover:bg-[var(--border-light)] rounded-md transition"
-              >
-                <EllipsisVertical
-                  size={18}
-                  className="text-[var(--text-secondary)]"
-                />
-              </button>
-            </div>
+
+            <button
+              ref={dotsRef}
+              onClick={handleDotsClick}
+              className="p-1.5 hover:bg-[var(--border-light)] rounded-md transition"
+            >
+              <EllipsisVertical
+                size={18}
+                className="text-[var(--text-secondary)]"
+              />
+            </button>
           </div>
         </div>
-        {/* DROPDOWN MENU - Positioned outside the card */}
+
+        {/* Dropdown Menu */}
         {showDropdown && (
           <div
             ref={dropdownRef}
@@ -191,23 +204,15 @@ const FileItem = ({
               min-w-48 bg-[var(--bg-main)]
               border border-[var(--border-light)]
               rounded-lg shadow-lg
-              overflow-visible
+              overflow-hidden
             "
             style={{
-              // Position it properly based on view mode
               ...(viewMode === "grid"
-                ? {
-                    top: "calc(100% - 20px)",
-                    right: "8px",
-                  }
-                : {
-                    top: "50%",
-                    right: "0",
-                    transform: "translateY(-50%)",
-                  }),
+                ? { top: "calc(100% - 20px)", right: "8px" }
+                : { top: "50%", right: "0", transform: "translateY(-50%)" }),
             }}
           >
-            {/* File Info Section */}
+            {/* File Info */}
             <div className="p-3 border-b border-[var(--border-light)]">
               <p className="text-sm font-medium truncate mb-1">{file.name}</p>
               <div className="flex justify-between text-xs text-[var(--text-secondary)]">
@@ -222,38 +227,42 @@ const FileItem = ({
               )}
             </div>
 
-            {/* Delete Button in Dropdown */}
+            {/* Delete Option */}
             {canDelete && (
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={deleting}
-                className="
+                className={`
                   w-full px-3 py-2.5
                   flex items-center gap-2
-                  text-sm
-                  text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20
+                  text-sm font-medium
+                  text-red-600 dark:text-red-400
+                  hover:bg-red-50 dark:hover:bg-red-900/20
                   transition-colors
-                "
+                  ${deleting ? "opacity-50 cursor-not-allowed" : ""}
+                `}
               >
                 <Trash2 size={16} />
                 <span>{deleting ? "Deleting..." : "Delete File"}</span>
               </button>
             )}
-
-            {/* Additional options can be added here */}
-            
           </div>
         )}
       </div>
 
-      {/* FULLSCREEN IMAGE */}
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <AskDelete onConfirm={confirmDelete} onCancel={cancelDelete} />
+      )}
+
+      {/* Fullscreen Image Viewer */}
       {isFullScreen && previewUrl && (
         <div
           className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
           onClick={() => setIsFullScreen(false)}
         >
           <button
-            className="absolute top-6 right-6 text-white"
+            className="absolute top-6 right-6 text-white p-2 rounded-full hover:bg-white/10 transition"
             onClick={() => setIsFullScreen(false)}
           >
             <X size={28} />
@@ -261,7 +270,7 @@ const FileItem = ({
           <img
             src={previewUrl}
             alt={file.name}
-            className="max-w-[95vw] max-h-[95vh]"
+            className="max-w-[95vw] max-h-[95vh] object-contain"
             loading="lazy"
           />
         </div>
