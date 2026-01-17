@@ -192,55 +192,12 @@ const FolderPage = () => {
                     className="pl-10 pr-4 py-2.5 text-sm w-md rounded-full border border-[var(--border-light)] bg-[var(--bg-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all"
                   />
                 </div>
-
-                
               </div>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* Quick Actions Bar */}
-          <div className="flex items-center justify-between mb-8 p-4 rounded-2xl bg-gradient-to-r from-[var(--bg-gradient)] border border-[var(--border-light)]/50">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-sm hover:shadow-lg hover:bg-[var(--accent-secondary)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  <Upload className="w-4 h-4" />
-                  {uploading ? "Uploading..." : "Upload Files"}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--border-light)]">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-all ${
-                    viewMode === "grid"
-                      ? "bg-white shadow-sm text-[var(--accent-primary)]"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"
-                  }`}
-                >
-                  <Grid className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-all ${
-                    viewMode === "list"
-                      ? "bg-white shadow-sm text-[var(--accent-primary)]"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"
-                  }`}
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Members Section - Modern Card Design */}
           <div className="bg-gradient-to-br from-[var(--bg-main)] to-[var(--bg-secondary)] rounded-2xl border border-[var(--border-light)] p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
@@ -258,14 +215,25 @@ const FolderPage = () => {
                 </div>
               </div>
 
-              {isOwner && (
+              <div className="flex justify-center items-center gap-5">
+                {isOwner && (
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 border border-[var(--border-light)] text-main rounded-sm hover:shadow-xs  disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    + Add members
+                  </button>
+                )}
+
                 <button
-                  onClick={() => setShowShareModal(true)}
-                  className="text-sm text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-sm hover:shadow-lg  disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  + Add members
+                  <Upload className="w-4 h-4" />
+                  {uploading ? "Uploading..." : "Upload Files"}
                 </button>
-              )}
+              </div>
             </div>
 
             {members.length === 0 ? (
@@ -339,7 +307,7 @@ const FolderPage = () => {
                   </p>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:shadow-lg transition-all duration-200"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:shadow-lg transition-all duration-200"
                   >
                     <Upload className="w-4 h-4" />
                     Upload Files
