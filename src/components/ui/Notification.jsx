@@ -88,28 +88,35 @@ export default function Notification() {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center  justify-center p-4">
             <div
               className="
                 bg-white rounded-xl shadow-2xl 
-                w-full max-w-lg max-h-[90vh] overflow-y-auto
-                animate-in fade-in zoom-in-95 duration-200
+                  max-h-[90vh] overflow-y-auto
+                animate-in fade-in duration-200 w-2xl
               "
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-5 border-b">
-                <h2 className="text-lg font-semibold">
-                  Collaboration Requests
-                </h2>
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border-light)] ">
+                <div className="">
+                  <h2 className="text-xl text-[var(--text-main)]/90 font-heading font-semibold">
+                    Collaboration Requests
+                  </h2>
+                  <p className="text-xs text-[var(--text-secondary)]/75 font-medium">
+                    After accepting the collaboration request you will be able
+                    to access the folder.
+                  </p>
+                </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
+                  className="flex items-center justify-center h-8 w-8"
+                  aria-label="Close"
                 >
-                  <span className="text-xl">×</span>
+                  <span className="text-lg leading-none">×</span>
                 </button>
               </div>
 

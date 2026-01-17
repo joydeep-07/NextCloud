@@ -4,17 +4,16 @@ import { useAuth } from "../../context/AuthContext";
 
 const CollaborationRequests = () => {
   const { user } = useAuth();
-
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ── same data fetching logic ── (keeping your logic intact)
   useEffect(() => {
     if (!user) return;
 
     const fetchRequests = async () => {
       setLoading(true);
 
-      // 1️⃣ Fetch invites ONLY
       const { data: invites, error } = await supabase
         .from("folder_invites")
         .select("id, folder_id, invited_by, status, created_at")
@@ -28,13 +27,12 @@ const CollaborationRequests = () => {
         return;
       }
 
-      if (!invites || invites.length === 0) {
+      if (!invites?.length) {
         setRequests([]);
         setLoading(false);
         return;
       }
 
-      // 2️⃣ Fetch folders
       const folderIds = invites.map((i) => i.folder_id);
       const inviterIds = invites.map((i) => i.invited_by);
 
@@ -46,7 +44,6 @@ const CollaborationRequests = () => {
           .in("id", inviterIds),
       ]);
 
-      // 3️⃣ Merge data
       const enriched = invites.map((invite) => ({
         ...invite,
         folder: folders?.find((f) => f.id === invite.folder_id),
@@ -62,68 +59,100 @@ const CollaborationRequests = () => {
 
   const handleAction = async (inviteId, status) => {
     await supabase.from("folder_invites").update({ status }).eq("id", inviteId);
-
     setRequests((prev) => prev.filter((r) => r.id !== inviteId));
   };
 
   if (loading) {
     return (
-      <p className="text-sm text-gray-500">Loading collaboration requests…</p>
+      <div className="py-8 text-center">
+        <p className="text-sm text-[var(--text-secondary)] animate-pulse">
+          Loading collaboration requests...
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-xl space-y-4">
-      <h2 className="text-lg font-semibold">Collaboration Requests</h2>
+    <div className="space-y-5">
+     
 
-      {requests.length === 0 && (
-        <p className="text-sm text-gray-500">
-          No pending collaboration requests
-        </p>
-      )}
-
-      {requests.map((req) => (
-        <div
-          key={req.id}
-          className="border rounded-lg p-4 flex justify-between gap-4"
-        >
-          <div>
-            <p className="text-sm">
-              Folder:{" "}
-              <span className="font-semibold">
-                {req.folder?.name || "Unknown folder"}
-              </span>
-            </p>
-
-            <p className="text-xs text-gray-500 mt-1">
-              Invited by:{" "}
-              {req.inviter
-                ? `${req.inviter.first_name} ${req.inviter.last_name}`
-                : "Unknown user"}
-            </p>
-
-            {req.inviter?.email && (
-              <p className="text-xs text-gray-400">{req.inviter.email}</p>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleAction(req.id, "accepted")}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded"
-            >
-              Accept
-            </button>
-
-            <button
-              onClick={() => handleAction(req.id, "rejected")}
-              className="px-3 py-1 text-sm bg-red-600 text-white rounded"
-            >
-              Reject
-            </button>
-          </div>
+      {requests.length === 0 ? (
+        <div className="py-10 text-center rounded-xl bg-[var(--bg-secondary)]/60 border border-[var(--border-light)]">
+          <p className="text-sm text-[var(--text-secondary)]">
+            No pending collaboration requests
+          </p>
         </div>
-      ))}
+      ) : (
+        <div className="space-y-3">
+          {requests.map((req) => (
+            <div
+              key={req.id}
+              className={`
+                group
+                flex items-center justify-between gap-4
+                p-4 sm:p-5
+                rounded-xl
+                bg-[var(--bg-secondary)]/70
+                border border-[var(--border-light)]
+                
+                transition-all duration-200
+              `}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-[var(--text-main)] truncate">
+                  {req.folder?.name || "Unnamed folder"}
+                </p>
+
+                <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                  Invited by{" "}
+                  <span className="font-medium">
+                    {req.inviter
+                      ? `${req.inviter.first_name} ${req.inviter.last_name}`
+                      : "someone"}
+                  </span>
+                  {req.inviter?.email && (
+                    <span className="ml-1.5 opacity-70">
+                      ({req.inviter.email})
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  onClick={() => handleAction(req.id, "accepted")}
+                  className={`
+                    min-w-[88px] px-4 py-2
+                    text-sm font-medium
+                    rounded-lg
+                    bg-green-600/90 hover:bg-green-600
+                    text-white
+                    shadow-sm
+                    transition-all active:scale-97
+                  `}
+                >
+                  Accept
+                </button>
+
+                <button
+                  onClick={() => handleAction(req.id, "rejected")}
+                  className={`
+                    min-w-[88px] px-4 py-2
+                    text-sm font-medium
+                    rounded-lg
+                    bg-red-600/90 hover:bg-red-600
+                    text-white
+                    shadow-sm
+                    transition-all active:scale-97
+                  `}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

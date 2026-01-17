@@ -4,14 +4,13 @@ import { useAuth } from "../context/AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import CreateFolderButton from "../components/ui/CreateFolderButton";
 import CreateFolderModal from "../components/ui/CreateFolderModal";
-import { Folder, Grid, List, MoreVertical } from "lucide-react";
-import { Trash2 } from "lucide-react";
+import { Folder, MoreVertical, Trash2 } from "lucide-react";
+import AskDelete from "../components/ui/AskDelete";
 
 const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  /* ===== SAFE OUTLET CONTEXT ===== */
   const outlet = useOutletContext() || {};
   const { searchTerm = "", viewMode = "grid", setViewMode = () => {} } = outlet;
 
@@ -20,12 +19,14 @@ const DashboardPage = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [usedStorageMB, setUsedStorageMB] = useState(0);
 
+  // New states for delete confirmation
+  const [folderToDelete, setFolderToDelete] = useState(null);
+
   /* ================= FETCH FOLDERS ================= */
   const fetchFolders = async () => {
     if (!user) return;
     setLoading(true);
 
-    // Owned folders
     const { data: ownedFolders, error: ownedError } = await supabase
       .from("folders")
       .select("*")
@@ -33,7 +34,6 @@ const DashboardPage = () => {
 
     if (ownedError) console.error(ownedError);
 
-    // Shared folders
     const { data: collaborations, error: collabError } = await supabase
       .from("folder_invites")
       .select(
@@ -84,7 +84,6 @@ const DashboardPage = () => {
     }
 
     const totalBytes = data.reduce((sum, file) => sum + (file.size || 0), 0);
-
     const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
     setUsedStorageMB(totalMB);
   };
@@ -94,21 +93,18 @@ const DashboardPage = () => {
     fetchStorageUsage();
   }, [user]);
 
-  /* ================= SEARCH ================= */
-  const filteredFolders = folders.filter((folder) =>
-    folder?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-// ==================== DELETE ====================
+  /* ================= DELETE LOGIC ================= */
+  const requestDeleteFolder = (folder) => {
+    setFolderToDelete(folder);
+  };
 
-  const handleDeleteFolder = async (folder) => {
-    const confirm = window.confirm(
-      `Delete folder "${folder.name}" and ALL files permanently?`,
-    );
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
 
-    if (!confirm) return;
+    const folder = folderToDelete;
+    setFolderToDelete(null);
 
     try {
-      /* 1️⃣ Get all files in folder */
       const { data: files, error: filesError } = await supabase
         .from("files")
         .select("id, path")
@@ -116,10 +112,8 @@ const DashboardPage = () => {
 
       if (filesError) throw filesError;
 
-      /* 2️⃣ Delete from storage */
       if (files.length > 0) {
         const paths = files.map((f) => f.path);
-
         const { error: storageError } = await supabase.storage
           .from("files")
           .remove(paths);
@@ -127,22 +121,25 @@ const DashboardPage = () => {
         if (storageError) throw storageError;
       }
 
-      /* 3️⃣ Delete file records */
       await supabase.from("files").delete().eq("folder_id", folder.id);
-
-      /* 4️⃣ Delete invites */
       await supabase.from("folder_invites").delete().eq("folder_id", folder.id);
-
-      /* 5️⃣ Delete folder */
       await supabase.from("folders").delete().eq("id", folder.id);
 
       fetchFolders();
       fetchStorageUsage();
     } catch (err) {
-      alert(err.message);
+      console.error("Folder deletion failed:", err);
+      alert("Failed to delete folder: " + (err.message || "Unknown error"));
     }
   };
 
+  const cancelDelete = () => {
+    setFolderToDelete(null);
+  };
+
+  const filteredFolders = folders.filter((folder) =>
+    folder?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   /* ================= UI ================= */
   return (
@@ -157,10 +154,9 @@ const DashboardPage = () => {
             className="flex sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 border-b"
             style={{ borderColor: "var(--border-light)" }}
           >
-            {/* Storage*/}
             <div className="flex flex-col gap-1 text-sm">
               <div className="flex-1 min-w-[180px] sm:min-w-[220px]">
-                <h4 className="py-1 text-xs font-medium text-[var(--text-secondary)] ">
+                <h4 className="py-1 text-xs font-medium text-[var(--text-secondary)]">
                   Storage Used
                 </h4>
                 <div
@@ -168,17 +164,13 @@ const DashboardPage = () => {
                   title={`${usedStorageMB} MB / 15 GB`}
                 >
                   <div
-                    className="h-full bg-gradient-to-r from-[var(--accent-secondary)] to-[var(--accent-primary)] to-red-500 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-[var(--accent-secondary)] to-[var(--accent-primary)] rounded-full transition-all duration-500"
                     style={{
-                      width: `${Math.min(
-                        (Number(usedStorageMB) / (15 * 1024)) * 100,
-                        100,
-                      )}%`,
+                      width: `${Math.min((Number(usedStorageMB) / (15 * 1024)) * 100, 100)}%`,
                     }}
                   />
                 </div>
               </div>
-
               <p className="text-[10px] text-[var(--text-secondary)]">
                 <span className="font-medium text-[var(--text-main)]">
                   {usedStorageMB} MB{" "}
@@ -187,7 +179,6 @@ const DashboardPage = () => {
               </p>
             </div>
 
-            {/* Right: Create */}
             <CreateFolderButton onClick={() => setIsCreateOpen(true)} />
           </div>
 
@@ -211,7 +202,7 @@ const DashboardPage = () => {
                     folder={folder}
                     viewMode={viewMode}
                     onClick={() => navigate(`/folder/${folder.id}`)}
-                    onDelete={handleDeleteFolder}
+                    onDeleteRequest={requestDeleteFolder} // ← Changed name for clarity
                   />
                 ))}
               </div>
@@ -229,18 +220,18 @@ const DashboardPage = () => {
           }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      {folderToDelete && (
+        <AskDelete onConfirm={confirmDeleteFolder} onCancel={cancelDelete} />
+      )}
     </div>
   );
 };
 
 /* ================= FOLDER ITEM ================= */
 
-
-
-
-
-
-export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
+export const FolderItem = ({ folder, viewMode, onClick, onDeleteRequest }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -254,10 +245,10 @@ export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleDelete = (e) => {
+  const handleDeleteClick = (e) => {
     e.stopPropagation();
     setShowDropdown(false);
-    onDelete?.(folder);
+    onDeleteRequest?.(folder);
   };
 
   const isOwnFolder = !folder.isCollaborator;
@@ -276,7 +267,6 @@ export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
       `}
     >
       <div className="flex items-start justify-between gap-4">
-        {/* Left side - icon + name */}
         <div className="flex items-center gap-3.5 min-w-0 flex-1">
           <div
             className="p-2.5 rounded-lg shrink-0 transition-transform duration-200
@@ -290,10 +280,10 @@ export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
             <h3
               className="
                 truncate
+                font-body
                 text-lg leading-tight
                 font-medium
                 text-[var(--text-secondary)]
-                font-body
               "
             >
               {folder.name}
@@ -307,7 +297,6 @@ export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
           </div>
         </div>
 
-        {/* Options menu - ALWAYS visible for own folders */}
         {isOwnFolder && (
           <div className="relative shrink-0" ref={dropdownRef}>
             <button
@@ -345,7 +334,7 @@ export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
                 "
               >
                 <button
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   className="
                     w-full px-4 py-2.5
                     text-left text-sm
@@ -366,7 +355,5 @@ export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
     </div>
   );
 };
-
-
 
 export default DashboardPage;
