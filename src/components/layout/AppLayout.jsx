@@ -15,7 +15,7 @@ const AppLayout = () => {
     <div className="min-h-screen flex flex-col">
       {/* Show Navbar everywhere except /dashboard */}
       {isDashboard && (
-        <div className="sticky top-0 z-10 px-15 py-5 bg-white">
+        <div className="sticky top-0 z-10">
           <Navbar
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}

@@ -10,30 +10,29 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Safe outlet context
+  /* ===== SAFE OUTLET CONTEXT ===== */
   const outlet = useOutletContext() || {};
-  const { searchTerm = "", viewMode, setViewMode } = outlet;
+  const { searchTerm = "", viewMode = "grid", setViewMode = () => {} } = outlet;
 
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [usedStorageMB, setUsedStorageMB] = useState(0);
 
   /* ================= FETCH FOLDERS ================= */
   const fetchFolders = async () => {
     if (!user) return;
     setLoading(true);
 
-    // 1️⃣ Owned folders
+    // Owned folders
     const { data: ownedFolders, error: ownedError } = await supabase
       .from("folders")
       .select("*")
       .eq("owner_id", user.id);
 
-    if (ownedError) {
-      console.error("Owned folders error:", ownedError);
-    }
+    if (ownedError) console.error(ownedError);
 
-    // 2️⃣ Accepted collaboration folders
+    // Shared folders
     const { data: collaborations, error: collabError } = await supabase
       .from("folder_invites")
       .select(
@@ -45,98 +44,98 @@ const DashboardPage = () => {
           created_at,
           owner_id
         )
-      `
+      `,
       )
       .eq("invited_user_id", user.id)
       .eq("status", "accepted");
 
-    if (collabError) {
-      console.error("Collaboration folders error:", collabError);
-    }
+    if (collabError) console.error(collabError);
 
-    // 3️⃣ Normalize collaborator folders
     const collaboratorFolders =
       collaborations
         ?.map((c) =>
-          c.folders
-            ? {
-                ...c.folders,
-                isCollaborator: true,
-              }
-            : null
+          c.folders ? { ...c.folders, isCollaborator: true } : null,
         )
         .filter(Boolean) || [];
 
-    // 4️⃣ Normalize owned folders
     const owned =
-      ownedFolders?.map((f) => ({
-        ...f,
-        isCollaborator: false,
-      })) || [];
+      ownedFolders?.map((f) => ({ ...f, isCollaborator: false })) || [];
 
-    // 5️⃣ Merge & remove duplicates
     const map = new Map();
-    [...owned, ...collaboratorFolders].forEach((f) => {
-      map.set(f.id, f);
-    });
+    [...owned, ...collaboratorFolders].forEach((f) => map.set(f.id, f));
 
     setFolders(Array.from(map.values()));
     setLoading(false);
   };
 
+  /* ================= FETCH STORAGE ================= */
+  const fetchStorageUsage = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("files")
+      .select("size")
+      .eq("owner_id", user.id);
+
+    if (error) {
+      console.error("Storage error:", error);
+      return;
+    }
+
+    const totalBytes = data.reduce((sum, file) => sum + (file.size || 0), 0);
+
+    const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
+    setUsedStorageMB(totalMB);
+  };
+
   useEffect(() => {
     fetchFolders();
+    fetchStorageUsage();
   }, [user]);
 
-  /* ================= SEARCH FILTER ================= */
+  /* ================= SEARCH ================= */
   const filteredFolders = folders.filter((folder) =>
-    folder?.name?.toLowerCase().includes((searchTerm || "").toLowerCase())
+    folder?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   /* ================= UI ================= */
   return (
-    <div className="px-4 transition-colors duration-400">
-      <div className="px-15">
-        <div className="overflow-hidden transition-all">
-          {/* Header */}
+    <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto">
+        <div
+          className="border rounded-2xl overflow-hidden"
+          style={{ borderColor: "var(--border-light)" }}
+        >
+          {/* HEADER */}
           <div
-            className="p-6 border-b flex items-center justify-between"
+            className="flex sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 border-b"
             style={{ borderColor: "var(--border-light)" }}
           >
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`px-4 py-2 ${
-                  viewMode === "grid" ? "text-[var(--accent-primary)]" : ""
-                }`}
-              >
-                <Grid size={18} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-4 py-2 ${
-                  viewMode === "list" ? "text-[var(--accent-primary)]" : ""
-                }`}
-              >
-                <List size={18} />
-              </button>
+           
+
+            {/* Center: Storage */}
+            <div className="text-sm text-[var(--text-secondary)]">
+              Storage used:
+              <span className="ml-1 font-medium text-[var(--text-main)]">
+                {usedStorageMB} MB
+              </span>
             </div>
 
-            {/* Only owners can create folders */}
+            {/* Right: Create */}
             <CreateFolderButton onClick={() => setIsCreateOpen(true)} />
           </div>
 
-          {/* Content */}
-          <div className="p-6">
+          {/* CONTENT */}
+          <div className="p-4 sm:p-6">
             {loading ? (
-              <p>Loading...</p>
+              <p className="text-sm opacity-70">Loading...</p>
             ) : filteredFolders.length === 0 ? (
               <p className="text-sm text-gray-500">No folders found</p>
             ) : (
               <div
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
                     : "space-y-3"
                 }
               >
@@ -157,7 +156,10 @@ const DashboardPage = () => {
       {isCreateOpen && (
         <CreateFolderModal
           onClose={() => setIsCreateOpen(false)}
-          onCreated={fetchFolders}
+          onCreated={() => {
+            fetchFolders();
+            fetchStorageUsage();
+          }}
         />
       )}
     </div>
@@ -168,28 +170,28 @@ const DashboardPage = () => {
 const FolderItem = ({ folder, viewMode, onClick }) => (
   <div
     onClick={onClick}
-    className={`group border rounded-xl cursor-pointer transition-all ${
-      viewMode === "grid" ? "p-5 hover:shadow-lg" : "p-4"
-    }`}
+    className={`group border rounded-xl cursor-pointer transition-all
+      hover:shadow-md hover:scale-[1.01] active:scale-[0.98]
+      ${viewMode === "grid" ? "p-5" : "p-4"}
+    `}
     style={{
       backgroundColor: "var(--bg-main)",
       borderColor: "var(--border-light)",
     }}
   >
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3">
       <div
-        className="p-2 rounded-lg"
+        className="p-2 rounded-lg shrink-0"
         style={{
           backgroundColor: "var(--bg-secondary)",
           color: "var(--accent-primary)",
         }}
       >
-        <Folder size={20} />
+        <Folder size={18} />
       </div>
 
       <div className="min-w-0">
         <h3 className="font-medium truncate">{folder.name}</h3>
-
         {folder.isCollaborator && (
           <p className="text-xs text-[var(--text-secondary)]">
             Shared with you
