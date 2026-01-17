@@ -151,6 +151,7 @@ const FileItem = ({
               <img
                 src={previewUrl}
                 alt={file.name}
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -261,6 +262,7 @@ const FileItem = ({
             src={previewUrl}
             alt={file.name}
             className="max-w-[95vw] max-h-[95vh]"
+            loading="lazy"
           />
         </div>
       )}
