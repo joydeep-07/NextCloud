@@ -111,14 +111,34 @@ const DashboardPage = () => {
             className="flex sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 border-b"
             style={{ borderColor: "var(--border-light)" }}
           >
-           
+            {/* Storage*/}
+            <div className="flex flex-col gap-1 text-sm">
+              <div className="flex-1 min-w-[180px] sm:min-w-[220px]">
+                <h4 className="py-1 text-xs font-medium text-[var(--text-secondary)] ">
+                  Storage Used
+                </h4>
+                <div
+                  className="h-1 bg-[var(--bg-secondary)] rounded-full overflow-hidden"
+                  title={`${usedStorageMB} MB / 15 GB`}
+                >
+                  <div
+                    className="h-full bg-gradient-to-r from-[var(--accent-secondary)] to-[var(--accent-primary)] to-red-500 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        (Number(usedStorageMB) / (15 * 1024)) * 100,
+                        100,
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
 
-            {/* Center: Storage */}
-            <div className="text-sm text-[var(--text-secondary)]">
-              Storage used:
-              <span className="ml-1 font-medium text-[var(--text-main)]">
-                {usedStorageMB} MB
-              </span>
+              <p className="text-[10px] text-[var(--text-secondary)]">
+                <span className="font-medium text-[var(--text-main)]">
+                  {usedStorageMB} MB{" "}
+                </span>
+                of 15 GB used
+              </p>
             </div>
 
             {/* Right: Create */}
