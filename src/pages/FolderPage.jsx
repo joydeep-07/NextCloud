@@ -2,19 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import {
-  Folder,
-  Upload,
-  Share2,
-  ArrowLeft,
-  Grid,
-  List,
-  Users,
-  Plus,
-  MoreVertical,
-  Search,
-  Filter,
-} from "lucide-react";
+import { Folder, Upload, ArrowLeft, Users, Search } from "lucide-react";
 import ShareFolderModal from "../components/ui/ShareFolderModal";
 import FileItem from "../components/ui/FileItem";
 import FolderSkeleton from "../components/ui/FolderSkeleton";
@@ -29,7 +17,7 @@ const FolderPage = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode] = useState("grid");
   const [isOwner, setIsOwner] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [members, setMembers] = useState([]);
@@ -58,27 +46,23 @@ const FolderPage = () => {
     setFiles(data || []);
   };
 
-  // Helper for better search (case-insensitive + trim + diacritics support)
-  const normalizeString = (str) => {
-    return str
+  const normalizeString = (str) =>
+    str
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // remove accents
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .trim();
-  };
 
   const filteredFiles = files.filter((file) => {
     if (!searchQuery.trim()) return true;
-
-    const normalizedQuery = normalizeString(searchQuery);
-    const normalizedName = normalizeString(file.name || "");
-
-    return normalizedName.includes(normalizedQuery);
+    return normalizeString(file.name || "").includes(
+      normalizeString(searchQuery),
+    );
   });
 
   const handleFileUpload = async (e) => {
     const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length === 0) return;
+    if (!selectedFiles.length) return;
 
     try {
       setUploading(true);
@@ -97,7 +81,7 @@ const FolderPage = () => {
         });
       }
 
-      await fetchFiles();
+      fetchFiles();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -107,8 +91,6 @@ const FolderPage = () => {
   };
 
   const fetchFolderMembers = async () => {
-    if (!id) return;
-
     const { data: folderData } = await supabase
       .from("folders")
       .select("owner_id")
@@ -117,7 +99,7 @@ const FolderPage = () => {
 
     if (!folderData) return;
 
-    const { data: ownerProfile } = await supabase
+    const { data: owner } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, email")
       .eq("id", folderData.owner_id)
@@ -133,110 +115,94 @@ const FolderPage = () => {
 
     if (collabs?.length) {
       const ids = collabs.map((c) => c.invited_user_id);
-
       const { data } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, email")
         .in("id", ids);
-
       collaboratorProfiles = data || [];
     }
 
     setMembers([
-      { ...ownerProfile, role: "Owner" },
-      ...collaboratorProfiles.map((p) => ({
-        ...p,
-        role: "Collaborator",
-      })),
+      { ...owner, role: "Owner" },
+      ...collaboratorProfiles.map((p) => ({ ...p, role: "Collaborator" })),
     ]);
-  };
-
-  // Refresh files after delete (called from FileItem)
-  const refreshFiles = () => {
-    fetchFiles();
   };
 
   useEffect(() => {
     if (!user) return;
 
     Promise.all([fetchFolder(), fetchFiles(), fetchFolderMembers()]).finally(
-      () => setLoading(false)
+      () => setLoading(false),
     );
   }, [user, id]);
 
   if (loading) return <FolderSkeleton />;
-  if (!folder) return <div className="p-8 text-red-500">Folder not found</div>;
+  if (!folder) return <div className="p-6 text-red-500">Folder not found</div>;
 
   return (
     <>
       <div className="min-h-screen bg-[var(--bg-main)]">
-        {/* Modern Header */}
-        <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
+        {/* HEADER */}
+        <div className="sticky top-0 z-10 bg-[var(--bg-main)]/90 backdrop-blur-md py-3">
+          <div className=" mx-0 md:mx-15 px-4 sm:px-6 ">
+            <div className="flex gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-all duration-200 group"
+                  className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition"
                 >
-                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-primary)] transition-colors" />
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </button>
 
                 <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
-                  </div>
+                  <Folder className="w-9 h-9 hidden md:flex text-[var(--accent-primary)]" />
                   <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-main)] tracking-tight">
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--text-main)]">
                       {folder.name}
                     </h1>
-                    <p className="text-sm text-[var(--text-secondary)]/70 mt-0.5">
-                      {files.length} files • Updated recently
-                    </p>
+                    {/* <p className="text-sm text-[var(--text-secondary)]/70">
+                      {files.length} files
+                    </p> */}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]/50" />
-                  <input
-                    type="text"
-                    placeholder="Search files..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2.5 text-sm w-64 md:w-80 rounded-full border border-[var(--border-light)] bg-[var(--bg-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all"
-                  />
-                </div>
+              <div className="relative w-full sm:w-64 md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]/50" />
+                <input
+                  type="text"
+                  placeholder="Search files..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2.5 w-full text-sm rounded-full bg-[var(--bg-secondary)] border border-[var(--border-light)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* Members Section */}
-          <div className="bg-gradient-to-br from-[var(--bg-main)] to-[var(--bg-secondary)] rounded-2xl border border-[var(--border-light)] p-6 shadow-sm">
-            {/* ... members section remains unchanged ... */}
-            <div className="flex items-center justify-between mb-6">
+        {/* CONTENT */}
+        <div className=" mx-0 md:mx-15 px-4 sm:px-6 py-8">
+          {/* MEMBERS */}
+          <div className="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-light)] p-4 sm:p-6 mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-[var(--bg-gradient)]">
-                  <Users className="w-5 h-5 text-[var(--accent-primary)]" />
-                </div>
+                <Users className="w-5 h-5 text-[var(--accent-primary)]" />
                 <div>
-                  <h3 className="text-lg font-semibold text-[var(--text-main)]">
+                  <h3 className="font-semibold text-[var(--text-main)]">
                     Folder Members
                   </h3>
                   <p className="text-sm text-[var(--text-secondary)]">
-                    {members.length} people have access
+                    {members.length} people
                   </p>
                 </div>
               </div>
 
-              <div className="flex justify-center items-center gap-5">
+              <div className="flex flex-col sm:flex-row gap-3">
                 {isOwner && (
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-[var(--border-light)] text-main rounded-sm hover:shadow-xs disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="px-4 py-2 border border-[var(--border-light)] rounded-sm"
                   >
                     + Add members
                   </button>
@@ -245,7 +211,7 @@ const FolderPage = () => {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[var(--accent-primary)] text-white rounded-sm hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-[var(--accent-primary)] text-white rounded-sm"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading..." : "Upload Files"}
@@ -253,50 +219,24 @@ const FolderPage = () => {
               </div>
             </div>
 
-            {/* Members list rendering remains the same */}
-            {members.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 mx-auto mb-3 text-[var(--text-secondary)]/30" />
-                <p className="text-[var(--text-secondary)]">No members yet</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="group relative overflow-hidden rounded-xl bg-[var(--bg-main)] border border-[var(--border-light)] hover:border-[var(--accent-primary)]/30 p-4 transition-all duration-200 hover:shadow-lg"
-                  >
-                    {/* ... member card content ... */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[var(--bg-gradient)] font-medium text-[var(--accent-primary)]">
-                          {member.first_name?.[0]}
-                          {member.last_name?.[0]}
-                        </div>
-                        <div>
-                          <p className="font-medium text-[var(--text-main)]">
-                            {member.first_name} {member.last_name}
-                          </p>
-                          <p className="text-sm text-[var(--text-secondary)] truncate max-w-[140px]">
-                            {member.email}
-                          </p>
-                        </div>
-                      </div>
-
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          member.role === "Owner"
-                            ? "bg-gradient-to-r from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10 text-[var(--accent-primary)]"
-                            : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
-                        }`}
-                      >
-                        {member.role}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  className="p-4 rounded-xl bg-[var(--bg-main)] border border-[var(--border-light)]"
+                >
+                  <p className="font-medium text-[var(--text-main)]">
+                    {member.first_name} {member.last_name}
+                  </p>
+                  <p className="text-sm text-[var(--text-secondary)] truncate">
+                    {member.email}
+                  </p>
+                  <span className="text-xs text-[var(--accent-primary)]">
+                    {member.role}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <input
@@ -307,53 +247,34 @@ const FolderPage = () => {
             onChange={handleFileUpload}
           />
 
-          {/* Files Section */}
-          <div className="my-12">
-            {filteredFiles.length === 0 ? (
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-primary)]/5 to-transparent rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <div className="relative border-2 border-dashed border-[var(--border-light)] rounded-2xl p-16 text-center bg-[var(--bg-secondary)]/30 backdrop-blur-sm hover:border-[var(--accent-primary)]/30 transition-all duration-300">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[var(--bg-gradient)] mb-6">
-                    <Folder className="w-10 h-10 text-[var(--accent-primary)]" />
-                  </div>
-                  <h3 className="text-xl font-medium text-[var(--text-main)] mb-2">
-                    {searchQuery.trim() ? "No files found" : "Folder is empty"}
-                  </h3>
-                  <p className="text-[var(--text-secondary)]/70 mb-6 max-w-md mx-auto">
-                    {searchQuery.trim()
-                      ? "Try a different search term or upload new files"
-                      : "Upload your first file to get started"}
-                  </p>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:shadow-lg transition-all duration-200"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload Files
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
-                    : "space-y-3"
-                }
+          {/* FILES */}
+          {filteredFiles.length === 0 ? (
+            <div className="border-2 border-dashed border-[var(--border-light)] rounded-2xl p-8 sm:p-12 md:p-16 text-center bg-[var(--bg-secondary)]">
+              <Folder className="w-12 h-12 mx-auto text-[var(--accent-primary)] mb-4" />
+              <h3 className="text-lg font-medium text-[var(--text-main)]">
+                {searchQuery ? "No files found" : "Folder is empty"}
+              </h3>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-6 px-6 py-3 bg-[var(--accent-primary)] text-white rounded-sm"
               >
-                {filteredFiles.map((file) => (
-                  <FileItem
-                    key={file.id}
-                    file={file}
-                    viewMode={viewMode}
-                    currentUserId={user.id}
-                    isOwner={isOwner}
-                    onDeleted={refreshFiles}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+                Upload Files
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+              {filteredFiles.map((file) => (
+                <FileItem
+                  key={file.id}
+                  file={file}
+                  viewMode={viewMode}
+                  currentUserId={user.id}
+                  isOwner={isOwner}
+                  onDeleted={fetchFiles}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

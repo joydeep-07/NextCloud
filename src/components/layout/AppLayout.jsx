@@ -25,7 +25,7 @@ const AppLayout = () => {
         </div>
       )}
 
-      <main className={isDashboard ? "flex-1 pt-0" : "flex-1 pt-4"}>
+      <main className={isDashboard ? "flex-1 pt-0" : "flex-1"}>
         <Outlet context={{ searchTerm, viewMode }} />
       </main>
     </div>
