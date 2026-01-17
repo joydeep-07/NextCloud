@@ -20,6 +20,7 @@ const FolderPage = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [isOwner, setIsOwner] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [members, setMembers] = useState([]);
 
   const fetchFolder = async () => {
     const { data } = await supabase
@@ -74,53 +75,108 @@ const FolderPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (!user) return;
-    Promise.all([fetchFolder(), fetchFiles()]).finally(() => setLoading(false));
-  }, [user, id]);
+ const fetchFolderMembers = async () => {
+   if (!id) return;
+
+   // 1️⃣ Folder
+   const { data: folderData } = await supabase
+     .from("folders")
+     .select("owner_id")
+     .eq("id", id)
+     .single();
+
+   if (!folderData) return;
+
+   // 2️⃣ Owner profile
+   const { data: ownerProfile } = await supabase
+     .from("profiles")
+     .select("id, first_name, last_name, email")
+     .eq("id", folderData.owner_id)
+     .single();
+
+   // 3️⃣ Collaborators
+   const { data: collabs } = await supabase
+     .from("folder_invites")
+     .select("invited_user_id")
+     .eq("folder_id", id)
+     .eq("status", "accepted");
+
+   let collaboratorProfiles = [];
+
+   if (collabs?.length) {
+     const ids = collabs.map((c) => c.invited_user_id);
+
+     const { data } = await supabase
+       .from("profiles")
+       .select("id, first_name, last_name, email")
+       .in("id", ids);
+
+     collaboratorProfiles = data || [];
+   }
+
+   setMembers([
+     { ...ownerProfile, role: "Owner" },
+     ...collaboratorProfiles.map((p) => ({
+       ...p,
+       role: "Collaborator",
+     })),
+   ]);
+ };
+
+
+
+useEffect(() => {
+  if (!user) return;
+
+  Promise.all([fetchFolder(), fetchFiles(), fetchFolderMembers()]).finally(() =>
+    setLoading(false)
+  );
+}, [user, id]);
+
 
   if (loading)
     return (
       <>
-     <FolderSkeleton/>
+        <FolderSkeleton />
       </>
     );
   if (!folder) return <div className="p-8 text-red-500">Folder not found</div>;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] p-6 md:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="p-2.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
-            </button>
+    <>
+      <div className="min-h-screen bg-[var(--bg-main)] p-6 md:p-8 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="p-2.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+              </button>
 
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-[var(--bg-gradient)] rounded-lg">
-                <Folder className="w-7 h-7 text-[var(--accent-primary)]" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-[var(--bg-gradient)] rounded-lg">
+                  <Folder className="w-7 h-7 text-[var(--accent-primary)]" />
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-main)] truncate max-w-[65vw] md:max-w-none">
+                  {folder.name}
+                </h1>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-main)] truncate max-w-[65vw] md:max-w-none">
-                {folder.name}
-              </h1>
+
+              {!isOwner && (
+                <span className="text-xs px-3 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-light)]">
+                  Collaborator
+                </span>
+              )}
             </div>
 
-            {!isOwner && (
-              <span className="text-xs px-3 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-light)]">
-                Collaborator
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            {isOwner && (
-              <button
-                onClick={() => setShowShareModal(true)}
-                className="
+            <div className="flex items-center gap-3 flex-wrap">
+              {isOwner && (
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="
                   flex items-center gap-2 
                   px-4 py-2 text-sm font-medium
                   rounded-lg border border-[var(--border-light)]
@@ -128,16 +184,16 @@ const FolderPage = () => {
                   hover:border-[var(--accent-secondary)]/40
                   transition-all
                 "
-              >
-                <Share2 className="w-4 h-4 text-[var(--accent-primary)]" />
-                Share
-              </button>
-            )}
+                >
+                  <Share2 className="w-4 h-4 text-[var(--accent-primary)]" />
+                  Share
+                </button>
+              )}
 
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="
                 flex items-center gap-2 
                 px-5 py-2.5 text-sm font-medium
                 bg-[var(--accent-primary)] text-white
@@ -146,32 +202,32 @@ const FolderPage = () => {
                 disabled:opacity-60 disabled:cursor-not-allowed
                 transition-all
               "
-            >
-              <Upload className="w-4 h-4" />
-              {uploading ? "Uploading..." : "Upload"}
-            </button>
+              >
+                <Upload className="w-4 h-4" />
+                {uploading ? "Uploading..." : "Upload"}
+              </button>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              hidden
-              multiple
-              onChange={handleFileUpload}
-            />
+              <input
+                ref={fileInputRef}
+                type="file"
+                hidden
+                multiple
+                onChange={handleFileUpload}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="text-sm text-[var(--text-secondary)]/80">
-          {files.length} {files.length === 1 ? "file" : "files"}
-        </div>
+        {/* Controls */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="text-sm text-[var(--text-secondary)]/80">
+            {files.length} {files.length === 1 ? "file" : "files"}
+          </div>
 
-        <div className="flex bg-[var(--bg-secondary)] p-1 rounded-lg border border-[var(--border-light)]/60">
-          <button
-            onClick={() => setViewMode("grid")}
-            className={`
+          <div className="flex bg-[var(--bg-secondary)] p-1 rounded-lg border border-[var(--border-light)]/60">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`
               p-2 rounded-md transition-colors
               ${
                 viewMode === "grid"
@@ -179,12 +235,12 @@ const FolderPage = () => {
                   : "text-[var(--text-secondary)]/70 hover:text-[var(--text-main)]"
               }
             `}
-          >
-            <Grid className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className={`
+            >
+              <Grid className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`
               p-2 rounded-md transition-colors
               ${
                 viewMode === "list"
@@ -192,48 +248,98 @@ const FolderPage = () => {
                   : "text-[var(--text-secondary)]/70 hover:text-[var(--text-main)]"
               }
             `}
-          >
-            <List className="w-5 h-5" />
-          </button>
+            >
+              <List className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Files */}
-      {files.length === 0 ? (
-        <div
-          className="
+        {/* Files */}
+        {files.length === 0 ? (
+          <div
+            className="
           border-2 border-dashed border-[var(--border-light)] 
           rounded-2xl p-16 md:p-24 
           text-center 
           bg-[var(--bg-secondary)]/50
         "
-        >
-          <Folder className="w-12 h-12 mx-auto mb-4 text-[var(--text-secondary)]/40" />
-          <p className="text-[var(--text-secondary)]/70 text-lg">
-            This folder is empty
-          </p>
-        </div>
-      ) : (
-        <div
-          className={
-            viewMode === "grid"
-              ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6"
-              : "flex flex-col gap-3"
-          }
-        >
-          {files.map((file) => (
-            <FileItem key={file.id} file={file} viewMode={viewMode} />
-          ))}
-        </div>
-      )}
+          >
+            <Folder className="w-12 h-12 mx-auto mb-4 text-[var(--text-secondary)]/40" />
+            <p className="text-[var(--text-secondary)]/70 text-lg">
+              This folder is empty
+            </p>
+          </div>
+        ) : (
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6"
+                : "flex flex-col gap-3"
+            }
+          >
+            {files.map((file) => (
+              <FileItem key={file.id} file={file} viewMode={viewMode} />
+            ))}
+          </div>
+        )}
 
-      {showShareModal && (
-        <ShareFolderModal
-          folderId={id}
-          onClose={() => setShowShareModal(false)}
-        />
-      )}
-    </div>
+        {showShareModal && (
+          <ShareFolderModal
+            folderId={id}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
+      </div>
+
+      {/* Folder Members */}
+      <div className="mt-14">
+        <h3 className="text-lg font-semibold text-[var(--text-main)] mb-4">
+          Folder Members
+        </h3>
+
+        {members.length === 0 ? (
+          <p className="text-sm text-[var(--text-secondary)]">
+            No members found
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {members.map((m) => (
+              <div
+                key={m.id}
+                className="
+            flex items-center justify-between
+            p-4 rounded-xl
+            bg-[var(--bg-secondary)]
+            border border-[var(--border-light)]
+          "
+              >
+                <div>
+                  <p className="font-medium text-[var(--text-main)]">
+                    {m.first_name} {m.last_name}
+                  </p>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    {m.email}
+                  </p>
+                </div>
+
+                <span
+                  className={`
+              text-xs px-3 py-1 rounded-full border
+              ${
+                m.role === "Owner"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200"
+              }
+            `}
+                >
+                  {m.role}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
