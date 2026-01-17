@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import CreateFolderButton from "../components/ui/CreateFolderButton";
 import CreateFolderModal from "../components/ui/CreateFolderModal";
-import { Folder, Grid, List } from "lucide-react";
+import { Folder, Grid, List, MoreVertical } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -97,6 +98,51 @@ const DashboardPage = () => {
   const filteredFolders = folders.filter((folder) =>
     folder?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+// ==================== DELETE ====================
+
+  const handleDeleteFolder = async (folder) => {
+    const confirm = window.confirm(
+      `Delete folder "${folder.name}" and ALL files permanently?`,
+    );
+
+    if (!confirm) return;
+
+    try {
+      /* 1️⃣ Get all files in folder */
+      const { data: files, error: filesError } = await supabase
+        .from("files")
+        .select("id, path")
+        .eq("folder_id", folder.id);
+
+      if (filesError) throw filesError;
+
+      /* 2️⃣ Delete from storage */
+      if (files.length > 0) {
+        const paths = files.map((f) => f.path);
+
+        const { error: storageError } = await supabase.storage
+          .from("files")
+          .remove(paths);
+
+        if (storageError) throw storageError;
+      }
+
+      /* 3️⃣ Delete file records */
+      await supabase.from("files").delete().eq("folder_id", folder.id);
+
+      /* 4️⃣ Delete invites */
+      await supabase.from("folder_invites").delete().eq("folder_id", folder.id);
+
+      /* 5️⃣ Delete folder */
+      await supabase.from("folders").delete().eq("id", folder.id);
+
+      fetchFolders();
+      fetchStorageUsage();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
 
   /* ================= UI ================= */
   return (
@@ -165,6 +211,7 @@ const DashboardPage = () => {
                     folder={folder}
                     viewMode={viewMode}
                     onClick={() => navigate(`/folder/${folder.id}`)}
+                    onDelete={handleDeleteFolder}
                   />
                 ))}
               </div>
@@ -187,41 +234,139 @@ const DashboardPage = () => {
 };
 
 /* ================= FOLDER ITEM ================= */
-const FolderItem = ({ folder, viewMode, onClick }) => (
-  <div
-    onClick={onClick}
-    className={`group border rounded-xl cursor-pointer transition-all
-      hover:shadow-md hover:scale-[1.01] active:scale-[0.98]
-      ${viewMode === "grid" ? "p-5" : "p-4"}
-    `}
-    style={{
-      backgroundColor: "var(--bg-main)",
-      borderColor: "var(--border-light)",
-    }}
-  >
-    <div className="flex items-center gap-3">
-      <div
-        className="p-2 rounded-lg shrink-0"
-        style={{
-          backgroundColor: "var(--bg-secondary)",
-          color: "var(--accent-primary)",
-        }}
-      >
-        <Folder size={18} />
-      </div>
 
-      <div className="min-w-0">
-        <h3 className=" text-[var(--text-secondary)]/90 text-lg truncate font-body ">
-          {folder.name}
-        </h3>
-        {folder.isCollaborator && (
-          <p className="text-xs text-[var(--text-secondary)]">
-            Shared with you
-          </p>
+
+
+
+
+
+export const FolderItem = ({ folder, viewMode, onClick, onDelete }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setShowDropdown(false);
+    onDelete?.(folder);
+  };
+
+  const isOwnFolder = !folder.isCollaborator;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`
+        group relative
+        border border-[var(--border-light)]
+        rounded-xl
+        bg-[var(--bg-main)]
+        cursor-pointer
+        transition-all duration-200
+        ${viewMode === "grid" ? "p-5" : "p-4 py-4"}
+      `}
+    >
+      <div className="flex items-start justify-between gap-4">
+        {/* Left side - icon + name */}
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div
+            className="p-2.5 rounded-lg shrink-0 transition-transform duration-200
+              bg-[var(--bg-secondary)]
+              text-[var(--accent-primary)]"
+          >
+            <Folder size={20} />
+          </div>
+
+          <div className="min-w-0">
+            <h3
+              className="
+                truncate
+                text-lg leading-tight
+                font-medium
+                text-[var(--text-secondary)]
+                font-body
+              "
+            >
+              {folder.name}
+            </h3>
+
+            {folder.isCollaborator && (
+              <p className="mt-0.5 text-xs text-[var(--text-tertiary)]">
+                Shared with you
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Options menu - ALWAYS visible for own folders */}
+        {isOwnFolder && (
+          <div className="relative shrink-0" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDropdown((prev) => !prev);
+              }}
+              className={`
+                p-1.5 -mr-1.5 rounded-lg
+                hover:bg-[var(--bg-secondary)]
+                transition-all duration-150
+                ${showDropdown ? "bg-[var(--bg-secondary)]" : ""}
+              `}
+              aria-label="Folder options"
+            >
+              <MoreVertical
+                size={18}
+                className="text-[var(--text-secondary)]"
+              />
+            </button>
+
+            {showDropdown && (
+              <div
+                className="
+                  absolute right-0 top-full mt-1
+                  w-48
+                  bg-[var(--bg-main)]
+                  border border-[var(--border-light)]
+                  rounded-lg
+                  shadow-xl
+                  py-1
+                  z-20
+                  overflow-hidden
+                "
+              >
+                <button
+                  onClick={handleDelete}
+                  className="
+                    w-full px-4 py-2.5
+                    text-left text-sm
+                    text-red-600 dark:text-red-400
+                    hover:bg-[var(--bg-secondary)]
+                    flex items-center gap-3
+                    transition-colors
+                  "
+                >
+                  <Trash2 size={16} />
+                  <span>Delete folder</span>
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+
 
 export default DashboardPage;
