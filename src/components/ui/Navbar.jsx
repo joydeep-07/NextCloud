@@ -1,6 +1,7 @@
 import React from "react";
-import { Search, Grid, List } from "lucide-react";
+import { Search, Grid, List, Bell } from "lucide-react";
 import UserDetail from "./UserDetail";
+import Notification from "./Notification";
 
 const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
   return (
@@ -60,6 +61,8 @@ const Navbar = ({ searchTerm, setSearchTerm, viewMode, setViewMode }) => {
               )}
             </div>
           </div>
+
+         <Notification/>
           {/* User Profile */}
           <UserDetail />
         </div>

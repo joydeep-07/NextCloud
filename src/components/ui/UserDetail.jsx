@@ -62,7 +62,7 @@ const UserDetail = () => {
       {/* --- TRIGGER BUTTON --- */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-center p-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+        className="flex items-center justify-center p-2 transition-all duration-200 "
       >
         <FaRegUser size={18} className="text-gray-600" />
       </button>
