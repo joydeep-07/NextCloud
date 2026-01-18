@@ -4,8 +4,16 @@ import { supabase } from "../services/supabaseClient";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("auth_user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  const [profile, setProfile] = useState(() => {
+    const storedProfile = localStorage.getItem("auth_profile");
+    return storedProfile ? JSON.parse(storedProfile) : null;
+  });
+
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId) => {
@@ -18,13 +26,15 @@ export const AuthProvider = ({ children }) => {
 
       if (!error) {
         setProfile(data);
+        localStorage.setItem("auth_profile", JSON.stringify(data));
       } else {
-        console.warn("Profile not found yet");
         setProfile(null);
+        localStorage.removeItem("auth_profile");
       }
     } catch (err) {
       console.error("Profile fetch failed:", err.message);
       setProfile(null);
+      localStorage.removeItem("auth_profile");
     }
   };
 
@@ -36,10 +46,14 @@ export const AuthProvider = ({ children }) => {
       setUser(sessionUser);
 
       if (sessionUser) {
-        fetchProfile(sessionUser.id); // 🔥 NOT awaited
+        localStorage.setItem("auth_user", JSON.stringify(sessionUser));
+        fetchProfile(sessionUser.id);
+      } else {
+        localStorage.removeItem("auth_user");
+        localStorage.removeItem("auth_profile");
       }
 
-      setLoading(false); // ✅ ALWAYS runs
+      setLoading(false);
     };
 
     initSession();
@@ -50,11 +64,15 @@ export const AuthProvider = ({ children }) => {
         setUser(sessionUser);
 
         if (sessionUser) {
+          localStorage.setItem("auth_user", JSON.stringify(sessionUser));
           fetchProfile(sessionUser.id);
         } else {
+          setUser(null);
           setProfile(null);
+          localStorage.removeItem("auth_user");
+          localStorage.removeItem("auth_profile");
         }
-      }
+      },
     );
 
     return () => authListener.subscription.unsubscribe();

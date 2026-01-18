@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiUser, FiLock } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/auth.service";
@@ -10,6 +10,14 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ If already logged in, skip login page
+  useEffect(() => {
+    const storedUser = localStorage.getItem("auth_user");
+    if (storedUser) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -17,7 +25,8 @@ const LoginPage = () => {
 
     try {
       await login({ email, password });
-      navigate("/dashboard");
+      // ✅ Redirect to protected root
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
