@@ -4,20 +4,19 @@ import { useAuth } from "../../context/AuthContext";
 const ProtectedRoute = () => {
   const { loading } = useAuth();
 
-  // ⏳ Wait until auth state initializes
   if (loading) {
     return <p>Loading...</p>;
   }
 
-  // 🔐 SINGLE source of truth
+  // 🔐 Single source of truth
   const storedUser = localStorage.getItem("auth_user");
 
-  // ❌ No user → force login
+  // ❌ Not logged in → force login
   if (!storedUser) {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ User exists → allow access
+  // ✅ Logged in → allow
   return <Outlet />;
 };
 
