@@ -2,22 +2,23 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { loading } = useAuth();
 
-  // ⏳ Wait until auth state is resolved
+  // ⏳ Wait until auth state initializes
   if (loading) {
     return <p>Loading...</p>;
   }
 
-  // 🔐 Fallback check from localStorage (page refresh safety)
+  // 🔐 SINGLE source of truth
   const storedUser = localStorage.getItem("auth_user");
 
-  if (isAuthenticated || storedUser) {
-    return <Outlet />;
+  // ❌ No user → force login
+  if (!storedUser) {
+    return <Navigate to="/login" replace />;
   }
 
-  // 🚫 Not authenticated
-  return <Navigate to="/login" replace />;
+  // ✅ User exists → allow access
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
