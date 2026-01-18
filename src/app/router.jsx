@@ -1,33 +1,40 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate, Route } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import AppLayout from "../components/layout/AppLayout";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
-import PublicRoute from "../components/auth/PublicRoute";
 
 import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import DashboardPage from "../pages/DashboardPage";
 import FolderPage from "../pages/FolderPage";
-import InvitePage from "../pages/InvitePage";
+import InviteAcceptPage from "../pages/InviteAcceptPage";
 import TestSupabase from "../pages/TestSupabase";
+import InvitePage from "../pages/InvitePage";
 
 const router = createBrowserRouter([
-  // 🔓 Public-only routes (login/signup)
+  // Redirect root to login
   {
-    element: <PublicRoute />,
+    path: "/",
+    element: <Navigate to="/login" replace />,
+  },
+
+  // Auth routes
+  {
+    element: <AuthLayout />,
     children: [
       {
-        element: <AuthLayout />,
-        children: [
-          { path: "/login", element: <LoginPage /> },
-          { path: "/signup", element: <SignupPage /> },
-        ],
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/signup",
+        element: <SignupPage />,
       },
     ],
   },
 
-  // 🔐 Protected routes
+  // Protected app routes
   {
     element: <ProtectedRoute />,
     children: [
@@ -35,10 +42,9 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           {
-            path: "/",
+            path: "/dashboard",
             element: <DashboardPage />,
           },
-         
           {
             path: "/folder/:id",
             element: <FolderPage />,
@@ -48,15 +54,19 @@ const router = createBrowserRouter([
     ],
   },
 
-  // 🌍 Public routes (no auth required)
-  {
+  // Invite route (can be accessed without login)
+  
+   {
     path: "/invite/:token",
     element: <InvitePage />,
   },
+  
   {
     path: "/test",
     element: <TestSupabase />,
   },
+
+  // <Route path="/test" element={<TestSupabase />} />,
 ]);
 
 export default router;
