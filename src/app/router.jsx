@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Route } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import AppLayout from "../components/layout/AppLayout";
@@ -8,29 +8,16 @@ import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import DashboardPage from "../pages/DashboardPage";
 import FolderPage from "../pages/FolderPage";
-import InviteAcceptPage from "../pages/InviteAcceptPage";
-import TestSupabase from "../pages/TestSupabase";
 import InvitePage from "../pages/InvitePage";
+import TestSupabase from "../pages/TestSupabase";
 
 const router = createBrowserRouter([
-  // Redirect root to login
-  {
-    path: "/",
-    element: <Navigate to="/login" replace />,
-  },
-
   // Auth routes
   {
     element: <AuthLayout />,
     children: [
-      {
-        path: "/login",
-        element: <LoginPage />,
-      },
-      {
-        path: "/signup",
-        element: <SignupPage />,
-      },
+      { path: "/login", element: <LoginPage /> },
+      { path: "/signup", element: <SignupPage /> },
     ],
   },
 
@@ -42,7 +29,7 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           {
-            path: "/dashboard",
+            path: "/", // 👈 Dashboard runs on root
             element: <DashboardPage />,
           },
           {
@@ -54,19 +41,15 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Invite route (can be accessed without login)
-  
-   {
+  // Public routes
+  {
     path: "/invite/:token",
     element: <InvitePage />,
   },
-  
   {
     path: "/test",
     element: <TestSupabase />,
   },
-
-  // <Route path="/test" element={<TestSupabase />} />,
 ]);
 
 export default router;

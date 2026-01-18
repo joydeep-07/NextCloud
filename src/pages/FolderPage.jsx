@@ -148,7 +148,7 @@ const FolderPage = () => {
             <div className="flex gap-4 md:flex-row items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/")}
                   className="p-2 rounded-lg hidden md:flex hover:bg-[var(--bg-secondary)] transition"
                 >
                   <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />

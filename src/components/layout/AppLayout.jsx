@@ -9,7 +9,7 @@ const AppLayout = () => {
   const location = useLocation();
 
   // Hide navbar only on /dashboard route
-  const isDashboard = location.pathname === "/dashboard";
+  const isDashboard = location.pathname === "/";
 
   return (
     <div className="min-h-screen flex flex-col">
